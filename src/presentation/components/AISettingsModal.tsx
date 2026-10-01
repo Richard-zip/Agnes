@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   AISettings,
+  AVAILABLE_MODELS,
   DEFAULT_FREE_MODEL,
   testGeminiConnection,
 } from "../../infrastructure/config/ai-settings.service";
@@ -226,7 +227,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({
               <div className="free-model-header">
                 <div className="free-model-info">
                   <span className="free-model-badge">API Gratuita</span>
-                  <strong className="free-model-title">Gemini 2.5 Flash</strong>
+                  <strong className="free-model-title">{AVAILABLE_MODELS[0]?.name || "Gemini 3.8 Flash"}</strong>
                 </div>
                 <span className="free-tier-indicator">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -236,7 +237,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({
                 </span>
               </div>
               <p className="free-model-description">
-                Agnes utiliza de forma exclusiva y predeterminada la API gratuita oficial de Google Gemini (modelo 2.5 Flash). Ofrece máxima velocidad y razonamiento óptimo para la síntesis académica sin requerir modelos de pago ni suscripciones.
+                Agnes utiliza de forma exclusiva y predeterminada la API gratuita oficial de Google Gemini (modelo 3.8 Flash). Ofrece máxima velocidad y razonamiento óptimo para la síntesis académica sin requerir modelos de pago ni suscripciones.
               </p>
             </div>
           </div>

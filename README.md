@@ -11,7 +11,7 @@ El usuario ingresa la materia, los temas a tratar y los participantes; Agnes gen
 ## ✨ Características Principales
 
 - 📄 **Generación automatizada** de protocolos individuales y colaborativos.
-- 🧠 **Motor de Inteligencia Artificial:** Impulsado por Google Gemini (`gemini-2.5-flash` por defecto en su nivel de API gratuita).
+- 🧠 **Motor de Inteligencia Artificial:** Impulsado por Google Gemini (`gemini-3.8-flash` por defecto en su nivel de API gratuita).
 - 📑 **Visualización de Páginas Oficiales:** Renderizado previo página por página, idéntico al resultado impreso en Word y PDF.
 - 📥 **Exportación Profesional:** Generación limpia de archivos Word (`.docx`) basados en las plantillas oficiales y conversión nativa a PDF (`.pdf`).
 - 🛑 **Control de Flujo:** Botón de detención inmediata de generación (Stop) mediante `AbortController`.
@@ -28,7 +28,7 @@ El usuario ingresa la materia, los temas a tratar y los participantes; Agnes gen
 | **Frontend** | [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) | Interfaz reactiva, modular y con tipado estricto |
 | **Bundler** | [Vite 5](https://vitejs.dev/) | Compilación ultrarrápida y entorno HMR |
 | **Plataforma Desktop** | [Electron 30](https://www.electronjs.org/) + `electron-builder` | Empaquetado de escritorio para Linux y Windows |
-| **Inteligencia Artificial** | [Google Generative AI SDK](https://www.npmjs.com/package/@google/generative-ai) | Comunicación directa con Gemini 2.5 Flash |
+| **Inteligencia Artificial** | [Google Generative AI SDK](https://www.npmjs.com/package/@google/generative-ai) | Comunicación directa con Gemini 3.8 Flash |
 | **Manipulación DOCX** | [JSZip](https://stuk.github.io/jszip/) | Inyección estructurada de contenido en XML de Word |
 | **Motor de Renderizado PDF**| [LibreOffice](https://www.libreoffice.org/) (Embebido o Sistema) | Compilación fidedigna de DOCX a PDF y hojas oficiales |
 | **Gestor de Paquetes** | [pnpm](https://pnpm.io/) | Gestión eficiente y determinista de dependencias |
@@ -205,7 +205,7 @@ pnpm test
 - **Test 7:** Normalización de mayúsculas sostenidas, preservación de siglas técnicas (OWASP, SQL, etc.) y corrección de dobles puntos.
 - **Test 8:** Exportación e inyección XML de plantillas DOCX y exportador PDF.
 - **Test 9:** Filtrado inteligente de emojis y numeraciones en los nombres de temas.
-- **Test 10:** Configuración predeterminada del modelo gratuito `gemini-2.5-flash`.
+- **Test 10:** Configuración predeterminada del modelo gratuito `gemini-3.8-flash`.
 - **Test 11 & 12:** Detección de motor LibreOffice y visualización de hojas oficiales.
 - **Test 13:** Cancelación limpia de generación con `AbortController` (botón Stop).
 - **Test 14:** Recorte automático de saltos de página y supresión de páginas finales en blanco.

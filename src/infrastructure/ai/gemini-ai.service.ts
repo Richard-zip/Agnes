@@ -1,15 +1,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { IAIService } from "../../core/interfaces/ai-service.interface";
 import { parseGeminiError } from "./ai-error-handler";
+import { DEFAULT_FREE_MODEL } from "../config/ai-settings.service";
 
 export class GeminiAIService implements IAIService {
   private readonly client: GoogleGenerativeAI | null;
   private readonly apiKey: string;
   private readonly modelName: string;
 
-  constructor(apiKey: string, modelName = "gemini-2.5-flash") {
+  constructor(apiKey: string, modelName = DEFAULT_FREE_MODEL) {
     this.apiKey = (apiKey || "").trim();
-    this.modelName = (modelName || "gemini-2.5-flash").trim();
+    this.modelName = (modelName || DEFAULT_FREE_MODEL).trim();
     this.client = this.apiKey ? new GoogleGenerativeAI(this.apiKey) : null;
   }
 

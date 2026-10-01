@@ -601,15 +601,15 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
   );
 
   // -------------------------------------------------------------
-  // Test 10: Restricción exclusiva al modelo gratuito por defecto (Gemini 2.5 Flash)
+  // Test 10: Restricción exclusiva al modelo gratuito por defecto (Gemini 3.8 Flash)
   // -------------------------------------------------------------
   console.log("\n--- TEST 10: Modelo Exclusivo de API Gratuita por Defecto ---");
   assert(
-    DEFAULT_FREE_MODEL === "gemini-2.5-flash",
-    "El modelo gratuito por defecto es gemini-2.5-flash"
+    DEFAULT_FREE_MODEL === "gemini-3.8-flash",
+    "El modelo gratuito por defecto es gemini-3.8-flash"
   );
   assert(
-    AVAILABLE_MODELS.length === 1 && AVAILABLE_MODELS[0].id === "gemini-2.5-flash",
+    AVAILABLE_MODELS.length === 1 && AVAILABLE_MODELS[0].id === "gemini-3.8-flash",
     "AVAILABLE_MODELS contiene exclusivamente el modelo gratuito por defecto"
   );
   assert(
@@ -619,14 +619,14 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
 
   const currentSettings = AISettingsService.getSettings();
   assert(
-    currentSettings.model === "gemini-2.5-flash",
-    "AISettingsService.getSettings() retorna de manera fija el modelo gratuito gemini-2.5-flash"
+    currentSettings.model === "gemini-3.8-flash",
+    "AISettingsService.getSettings() retorna de manera fija el modelo gratuito gemini-3.8-flash"
   );
 
   AISettingsService.saveSettings({ apiKey: "test-key", model: "otro-modelo-pago" });
   const savedSettings = AISettingsService.getSettings();
   assert(
-    savedSettings.model === "gemini-2.5-flash",
+    savedSettings.model === "gemini-3.8-flash",
     "AISettingsService fuerza el almacenamiento exclusivo del modelo gratuito por defecto"
   );
 

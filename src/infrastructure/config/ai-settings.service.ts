@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { appConfig } from "./env.config";
 import { parseGeminiError } from "../ai/ai-error-handler";
 
-export const DEFAULT_FREE_MODEL = "gemini-2.5-flash";
+export const DEFAULT_FREE_MODEL = "gemini-3.8-flash";
 
 export interface AISettings {
   apiKey: string;
@@ -19,7 +19,7 @@ export interface AIModelOption {
 export const AVAILABLE_MODELS: AIModelOption[] = [
   {
     id: DEFAULT_FREE_MODEL,
-    name: "Gemini 2.5 Flash",
+    name: "Gemini 3.8 Flash",
     description: "Modelo oficial de la API gratuita en Google AI Studio (alta velocidad y síntesis académica de calidad).",
     badge: "API Gratuita",
   },
@@ -41,7 +41,7 @@ export class AISettingsService {
     }
 
     const apiKey = storedKey.trim() || appConfig.geminiApiKey || "";
-    // Se utiliza exclusivamente la API gratuita por defecto (gemini-2.5-flash)
+    // Se utiliza exclusivamente la API gratuita por defecto (gemini-3.8-flash)
     const model = DEFAULT_FREE_MODEL;
 
     return { apiKey, model };
