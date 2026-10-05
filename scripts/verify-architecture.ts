@@ -8,10 +8,12 @@ import { COLLABORATIVE_PROMPT } from "../src/core/prompts/collaborative.prompt.t
 import { MockAIService } from "../src/infrastructure/ai/mock-ai.service.ts";
 import { EventLoggerService } from "../src/infrastructure/logging/event-logger.service.ts";
 import { GenerateProtocolUseCase } from "../src/application/use-cases/generate-protocol.use-case.ts";
+import { GenerateQuizUseCase } from "../src/application/use-cases/generate-quiz.use-case.ts";
 import { ExportProtocolUseCase } from "../src/application/use-cases/export-protocol.use-case.ts";
 import { IDocumentExporter, ExportFile } from "../src/core/interfaces/document-exporter.interface.ts";
 import { IFileDownloader } from "../src/core/interfaces/file-downloader.interface.ts";
 import { Protocol } from "../src/core/entities/protocol.entity.ts";
+import { Quiz } from "../src/core/entities/quiz.entity.ts";
 import { PdfProtocolExporter } from "../src/infrastructure/export/pdf-protocol.exporter.ts";
 import {
   appendColonIfMissing,
@@ -66,7 +68,6 @@ async function runVerification() {
   const individualResult = await generateUseCase.execute({
     materia: "Arquitectura de Software",
     temas: ["SOLID", "Clean Architecture"],
-    participantes: [],
     tipo: "individual",
   });
 
@@ -84,8 +85,6 @@ async function runVerification() {
   class ResearchProtocolStrategy extends BaseProtocolStrategy {
     readonly id = "investigacion";
     readonly label = "Investigación Científica";
-    readonly requiresParticipants = true;
-    readonly defaultParticipantsText = "Investigador Principal\nCo-Investigador";
     readonly templatePath = "/PLANTILLA%20INVESTIGACION.docx";
 
     buildPrompt(input: ProtocolStrategyInput): string {
@@ -119,7 +118,6 @@ async function runVerification() {
   const researchResult = await generateUseCase.execute({
     materia: "Inteligencia Artificial Aplicada",
     temas: ["Redes Neuronales", "Transformers"],
-    participantes: ["Dra. Curie", "Dr. Turing"],
     tipo: "investigacion",
   });
 
@@ -130,7 +128,6 @@ async function runVerification() {
   const colabResult = await generateUseCase.execute({
     materia: "Bases de Datos",
     temas: ["PostgreSQL", "Normalización"],
-    participantes: ["Estudiante A", "Estudiante B"],
     tipo: "colaborativo",
   });
   assert(colabResult.metadata.tipo === "colaborativo", "La estrategia 'colaborativo' preexistente sigue funcionando sin fallos");
@@ -300,8 +297,6 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
   const extractedColab = colabStrategy.extractSections(mockGeminiMarkdown, {
     materia: "Seguridad Informática",
     temas: ["Pentesting", "Caja Blanca", "OWASP Top 10"],
-    participantes: ["Richard Assis", "Maria Ines Arrieta"],
-    tipo: "colaborativo",
   });
 
   assert(
@@ -411,7 +406,6 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
       "OWASP TOP TEN.",
       "ATAQUES DE RED.",
     ],
-    participantes: ["RICHARD ASSIS.", "MARIA INES ARRIETA."],
     tipo: "colaborativo",
   };
 
@@ -420,10 +414,6 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
   assert(
     allCapsUseCaseResult.metadata.temas.every((t) => !t.endsWith(".")),
     "Los temas limpios en la metadata no tienen punto final"
-  );
-  assert(
-    allCapsUseCaseResult.metadata.participantes.every((p) => !p.endsWith(".")),
-    "Los participantes limpios en la metadata no tienen punto final"
   );
 
   const individualStrategy = new IndividualProtocolStrategy();
@@ -463,8 +453,6 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
   class TestStrategy extends BaseProtocolStrategy {
     readonly id = "test";
     readonly label = "Test";
-    readonly requiresParticipants = false;
-    readonly defaultParticipantsText = "";
     readonly templatePath = "";
     buildPrompt(): string { return ""; }
     extractSections(): Record<string, string> { return {}; }
@@ -580,7 +568,6 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
       "Ataques de red ✅",
       "🚀 Pruebas de caja blanca",
     ],
-    participantes: ["Richard Assis"],
     tipo: "individual",
   };
 
@@ -694,7 +681,6 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
       {
         materia: "Ingeniería de Software",
         temas: ["Arquitectura de Software"],
-        participantes: [],
         tipo: "colaborativo",
       },
       abortController.signal
@@ -821,6 +807,53 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
     exporterCodeUpdated.includes("loadTemplate"),
     "DocxProtocolExporter prioriza el canal IPC loadTemplate para evitar errores 'Failed to fetch'"
   );
+
+  // -------------------------------------------------------------
+  // Test 17: Cuestionario Obligatorio de 10 Preguntas con Aprobación del 80%
+  // -------------------------------------------------------------
+  console.log("\n--- TEST 17: Cuestionario Obligatorio de 10 Preguntas (Mínimo 80% para Descargar) ---");
+  const generateQuizUseCase = new GenerateQuizUseCase(mockAI, logger);
+  const quiz = await generateQuizUseCase.execute(individualResult);
+
+  assert(quiz instanceof Quiz, "GenerateQuizUseCase retorna una instancia válida de Quiz");
+  assert(quiz.questions.length === 10, "El cuestionario contiene exactamente 10 preguntas");
+  assert(quiz.passingScore === 80, "El porcentaje mínimo de aprobación es del 80%");
+  assert(quiz.minPassingCorrect === 8, "El mínimo de respuestas correctas requeridas es 8");
+
+  // Caso 1: 7 correctas de 10 (70% -> Reprobado)
+  const answers70: Record<number, number> = {};
+  quiz.questions.forEach((q, idx) => {
+    answers70[q.id] = idx < 7 ? q.correctOptionIndex : (q.correctOptionIndex + 1) % 4;
+  });
+  const eval70 = quiz.evaluate(answers70);
+  assert(eval70.correctCount === 7, "eval70 calculó exactamente 7 respuestas correctas");
+  assert(eval70.scorePercentage === 70, "eval70 calculó un porcentaje del 70%");
+  assert(eval70.passed === false, "eval70 fue reprobado por no alcanzar el 80% mínimo");
+
+  // Caso 2: 8 correctas de 10 (80% -> Aprobado)
+  const answers80: Record<number, number> = {};
+  quiz.questions.forEach((q, idx) => {
+    answers80[q.id] = idx < 8 ? q.correctOptionIndex : (q.correctOptionIndex + 1) % 4;
+  });
+  const eval80 = quiz.evaluate(answers80);
+  assert(eval80.correctCount === 8, "eval80 calculó exactamente 8 respuestas correctas");
+  assert(eval80.scorePercentage === 80, "eval80 calculó un porcentaje del 80%");
+  assert(eval80.passed === true, "eval80 fue aprobado exitosamente con el 80% mínimo");
+
+  // Caso 3: Reintento del mismo cuestionario corrigiendo respuestas fallidas
+  answers70[quiz.questions[7].id] = quiz.questions[7].correctOptionIndex; // Corregir la pregunta 8
+  const evalRetry = quiz.evaluate(answers70);
+  assert(evalRetry.passed === true, "El reintento sobre el mismo cuestionario corrigiendo respuestas alcanza el 80% y aprueba");
+
+  // Verificación de integración en UI
+  const quizModalCode = fs.readFileSync("src/presentation/components/ProtocolQuizModal.tsx", "utf-8");
+  assert(quizModalCode.includes("80%"), "ProtocolQuizModal indica visiblemente el 80% mínimo");
+  assert(quizModalCode.includes("targetDownloadFormat"), "ProtocolQuizModal maneja el formato de descarga pendiente (word/pdf)");
+
+  const controllerCodeWithQuiz = fs.readFileSync("src/presentation/hooks/useProtocolController.ts", "utf-8");
+  assert(controllerCodeWithQuiz.includes("isQuizApproved"), "useProtocolController gestiona el estado isQuizApproved");
+  assert(controllerCodeWithQuiz.includes("isQuizModalOpen"), "useProtocolController controla la apertura del modal de cuestionario");
+  assert(controllerCodeWithQuiz.includes("handleQuizPassed"), "useProtocolController expone el callback handleQuizPassed");
 
   console.log("\n🎉 TODAS LAS VERIFICACIONES DE ARQUITECTURA Y PRINCIPIOS SOLID PASARON EXITOSAMENTE.");
 

@@ -5,12 +5,10 @@ import { INDIVIDUAL_PROMPT } from "../prompts/individual.prompt";
 export class IndividualProtocolStrategy extends BaseProtocolStrategy {
   readonly id = "individual";
   readonly label = "Individual";
-  readonly requiresParticipants = false;
-  readonly defaultParticipantsText = "Nombre del estudiante";
   readonly templatePath = "templates/PLANTILLA%20PROTOCOLO%20INDIVIDUAL.docx";
 
   buildPrompt(input: ProtocolStrategyInput): string {
-    return this.formatSubstitutions(INDIVIDUAL_PROMPT, input, this.defaultParticipantsText);
+    return this.formatSubstitutions(INDIVIDUAL_PROMPT, input);
   }
 
   extractSections(rawText: string, input: ProtocolStrategyInput): Record<string, string> {

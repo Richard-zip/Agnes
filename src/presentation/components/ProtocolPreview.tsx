@@ -9,7 +9,6 @@ interface ProtocolPreviewProps {
   materia: string;
   activeStrategy: IProtocolStrategy;
   temasCount: number;
-  participantesCount: number;
   protocol: Protocol | null;
   loading: boolean;
   exportingWord?: boolean;
@@ -28,7 +27,6 @@ export const ProtocolPreview: React.FC<ProtocolPreviewProps> = ({
   materia,
   activeStrategy,
   temasCount,
-  participantesCount,
   protocol,
   loading,
   exportingWord = false,
@@ -50,9 +48,6 @@ export const ProtocolPreview: React.FC<ProtocolPreviewProps> = ({
           <div className="preview-header-meta">
             <span className="preview-badge accent">{activeStrategy.label}</span>
             <span className="preview-badge">{temasCount} {temasCount === 1 ? "tema" : "temas"}</span>
-            {activeStrategy.requiresParticipants && (
-              <span className="preview-badge">{participantesCount} {participantesCount === 1 ? "integrante" : "integrantes"}</span>
-            )}
           </div>
         </div>
 
@@ -234,14 +229,6 @@ export const ProtocolPreview: React.FC<ProtocolPreviewProps> = ({
                 <span className="document-meta-label">Tipo de protocolo</span>
                 <span className="document-meta-val">{activeStrategy.label}</span>
               </div>
-              {activeStrategy.requiresParticipants && (
-                <div className="document-meta-item">
-                  <span className="document-meta-label">Integrantes</span>
-                  <span className="document-meta-val">
-                    {participantesCount > 0 ? `${participantesCount} participantes` : "Individual"}
-                  </span>
-                </div>
-              )}
               <div className="document-meta-item">
                 <span className="document-meta-label">Fecha</span>
                 <span className="document-meta-val">

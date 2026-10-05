@@ -3,6 +3,7 @@ import { IAIService } from "../../core/interfaces/ai-service.interface";
 import { ILogger } from "../../core/interfaces/logger.interface";
 import { IProtocolRegistry } from "../../core/strategies/protocol-strategy.registry";
 import { parsePreviewSections } from "../../core/helpers/section-parser";
+import { appendUserInstructions, normalizeUserInstructions } from "../../core/prompts/user-instructions.prompt";
 import { GenerateProtocolDto, validateGenerateProtocolInput } from "../dtos/generate-protocol.dto";
 
 export class GenerateProtocolUseCase {
@@ -24,7 +25,7 @@ export class GenerateProtocolUseCase {
 
     const strategy = this.protocolRegistry.get(dto.tipo);
 
-    const validation = validateGenerateProtocolInput(dto, strategy.requiresParticipants);
+    const validation = validateGenerateProtocolInput(dto);
     if (!validation.valid) {
       const errorMsg = validation.errors.join(" ");
       this.logger.error(`(${reqId}) Validación fallida: ${errorMsg}`);
@@ -36,12 +37,15 @@ export class GenerateProtocolUseCase {
       temas: dto.temas
         .map((t) => t.replace(/^[•*-]\s*/, "").replace(/[.,;:\s]+$/, "").trim())
         .filter(Boolean),
-      participantes: dto.participantes
-        .map((p) => p.replace(/[.,;:\s]+$/, "").trim())
-        .filter(Boolean),
     };
 
-    const prompt = strategy.buildPrompt(cleanInput);
+    const instrucciones = normalizeUserInstructions(dto.instruccionesAdicionales);
+    const prompt = appendUserInstructions(strategy.buildPrompt(cleanInput), instrucciones);
+    if (instrucciones) {
+      this.logger.info(
+        `(${reqId}) Instrucciones adicionales del usuario aplicadas (${instrucciones.length} caracteres).`
+      );
+    }
     this.logger.info(
       `(${reqId}) Prompt construido para materia="${cleanInput.materia}". Solicitando generación a IA...`
     );
@@ -74,7 +78,6 @@ export class GenerateProtocolUseCase {
     const metadata: ProtocolMetadata = {
       materia: cleanInput.materia,
       temas: cleanInput.temas,
-      participantes: cleanInput.participantes,
       tipo: dto.tipo,
       createdAt: new Date(),
     };

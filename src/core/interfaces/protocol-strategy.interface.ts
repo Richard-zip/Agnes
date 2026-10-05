@@ -1,7 +1,6 @@
 export interface ProtocolStrategyInput {
   materia: string;
   temas: string[];
-  participantes: string[];
 }
 
 export interface TemplateTarget {
@@ -12,8 +11,6 @@ export interface TemplateTarget {
 export interface IProtocolStrategy {
   readonly id: string;
   readonly label: string;
-  readonly requiresParticipants: boolean;
-  readonly defaultParticipantsText: string;
   readonly templatePath: string;
 
   buildPrompt(input: ProtocolStrategyInput): string;

@@ -17,8 +17,6 @@ const MINOR_WORDS = new Set(["de", "del", "en", "para", "por", "y", "e", "o", "u
 export abstract class BaseProtocolStrategy implements IProtocolStrategy {
   abstract readonly id: string;
   abstract readonly label: string;
-  abstract readonly requiresParticipants: boolean;
-  abstract readonly defaultParticipantsText: string;
   abstract readonly templatePath: string;
 
   abstract buildPrompt(input: ProtocolStrategyInput): string;
@@ -119,25 +117,11 @@ export abstract class BaseProtocolStrategy implements IProtocolStrategy {
     });
   }
 
-  protected formatSubstitutions(
-    template: string,
-    input: ProtocolStrategyInput,
-    fallbackParticipants: string
-  ): string {
+  protected formatSubstitutions(template: string, input: ProtocolStrategyInput): string {
     const materiaLimpia = this.cleanMateriaName(input.materia);
     const rawTemas = input.temas.map((t) => t.trim()).filter(Boolean);
     const primerTemaLimpio = rawTemas.length > 0 ? this.cleanTopicName(rawTemas[0], true) : "el tema principal";
     const temasTexto = this.formatTopicList(rawTemas, true);
-
-    let participantesTexto = "";
-    if (input.participantes && input.participantes.length > 0) {
-      participantesTexto = input.participantes
-        .map((p) => this.titleCaseName(p))
-        .filter(Boolean)
-        .join("\n");
-    } else {
-      participantesTexto = fallbackParticipants;
-    }
 
     return template
       .split("[NOMBRE DE LA MATERIA]")
@@ -150,8 +134,6 @@ export abstract class BaseProtocolStrategy implements IProtocolStrategy {
       .join(primerTemaLimpio)
       .split("[TEMA]")
       .join(primerTemaLimpio)
-      .split("[PARTICIPANTES]")
-      .join(participantesTexto)
       .replace(/([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ])\.\.(?!\.)/g, "$1.");
   }
 
@@ -281,17 +263,6 @@ export abstract class BaseProtocolStrategy implements IProtocolStrategy {
     if (!value) return value;
     const v = value.trim();
     return /[.?!]$/.test(v) ? v : `${v}.`;
-  }
-
-  protected titleCaseName(name: string): string {
-    if (!name) return name;
-    return name
-      .trim()
-      .toLowerCase()
-      .split(/\s+/)
-      .map((part) => (part.length > 0 ? part[0].toUpperCase() + part.slice(1) : ""))
-      .join(" ")
-      .trim();
   }
 
   protected normalizeHeading(text: string): string {

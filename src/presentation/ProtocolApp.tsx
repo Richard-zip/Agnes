@@ -2,6 +2,7 @@ import React from "react";
 import { useProtocolController } from "./hooks/useProtocolController";
 import { ProtocolForm } from "./components/ProtocolForm";
 import { ProtocolPreview } from "./components/ProtocolPreview";
+import { ProtocolQuizModal } from "./components/ProtocolQuizModal";
 import { AppContainer, container as defaultContainer } from "../infrastructure/di/container";
 
 interface ProtocolAppProps {
@@ -15,21 +16,25 @@ export const ProtocolApp: React.FC<ProtocolAppProps> = ({ appContainer, onReques
     setMateria,
     temasTexto,
     setTemasTexto,
-    participantes,
     tipo,
     setTipo,
-    actualizarParticipante,
-    agregarParticipante,
-    eliminarParticipante,
+    instruccionesAdicionales,
+    setInstruccionesAdicionales,
     availableStrategies,
     activeStrategy,
     temasFiltrados,
-    participantesFiltrados,
     currentProtocol,
     loading,
     exportingWord,
     exportingPdf,
     errorMessage,
+    isQuizModalOpen,
+    setIsQuizModalOpen,
+    currentQuiz,
+    loadingQuiz,
+    pendingDownloadFormat,
+    handleQuizPassed,
+    handleRetryGenerateQuiz,
     handleGenerate,
     handleStop,
     handleExportWord,
@@ -45,14 +50,11 @@ export const ProtocolApp: React.FC<ProtocolAppProps> = ({ appContainer, onReques
         onMateriaChange={setMateria}
         temasTexto={temasTexto}
         onTemasTextoChange={setTemasTexto}
-        participantes={participantes}
-        onActualizarParticipante={actualizarParticipante}
-        onAgregarParticipante={agregarParticipante}
-        onEliminarParticipante={eliminarParticipante}
         tipo={tipo}
         onTipoChange={setTipo}
+        instruccionesAdicionales={instruccionesAdicionales}
+        onInstruccionesAdicionalesChange={setInstruccionesAdicionales}
         availableStrategies={availableStrategies}
-        activeStrategy={activeStrategy}
         loading={loading}
         onGenerate={handleGenerate}
         onStop={handleStop}
@@ -62,7 +64,6 @@ export const ProtocolApp: React.FC<ProtocolAppProps> = ({ appContainer, onReques
         materia={materia}
         activeStrategy={activeStrategy}
         temasCount={temasFiltrados.length}
-        participantesCount={participantesFiltrados.length}
         protocol={currentProtocol}
         loading={loading}
         exportingWord={exportingWord}
@@ -74,6 +75,16 @@ export const ProtocolApp: React.FC<ProtocolAppProps> = ({ appContainer, onReques
         onExportWord={handleExportWord}
         onExportPdf={handleExportPdf}
         onRequestConfig={onRequestConfig}
+      />
+
+      <ProtocolQuizModal
+        isOpen={isQuizModalOpen}
+        onClose={() => setIsQuizModalOpen(false)}
+        quiz={currentQuiz}
+        loadingQuiz={loadingQuiz}
+        onRetryGenerateQuiz={handleRetryGenerateQuiz}
+        onPassed={handleQuizPassed}
+        targetDownloadFormat={pendingDownloadFormat}
       />
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Protocol } from "../../core/entities/protocol.entity";
+import { Quiz } from "../../core/entities/quiz.entity";
 import { AppContainer, container as defaultContainer } from "../../infrastructure/di/container";
 
 export function useProtocolController(
@@ -8,14 +9,21 @@ export function useProtocolController(
 ) {
   const [materia, setMateria] = useState("");
   const [temasTexto, setTemasTexto] = useState("");
-  const [participantes, setParticipantes] = useState([""]);
   const [tipo, setTipo] = useState("individual");
+  const [instruccionesAdicionales, setInstruccionesAdicionales] = useState("");
   const [currentProtocol, setCurrentProtocol] = useState<Protocol | null>(null);
   const [loading, setLoading] = useState(false);
   const [exportingWord, setExportingWord] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Estados del cuestionario obligatorio
+  const [isQuizApproved, setIsQuizApproved] = useState(false);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [currentQuiz, setCurrentQuiz] = useState<Quiz | null>(null);
+  const [loadingQuiz, setLoadingQuiz] = useState(false);
+  const [pendingDownloadFormat, setPendingDownloadFormat] = useState<"word" | "pdf">("word");
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -53,22 +61,6 @@ export function useProtocolController(
       .filter(Boolean);
   }, [temasTexto]);
 
-  const participantesFiltrados = useMemo(() => {
-    return participantes.map((p) => p.replace(/[.,;:\s]+$/, "").trim()).filter(Boolean);
-  }, [participantes]);
-
-  const actualizarParticipante = useCallback((index: number, value: string) => {
-    setParticipantes((actuales) => actuales.map((p, i) => (i === index ? value : p)));
-  }, []);
-
-  const agregarParticipante = useCallback(() => {
-    setParticipantes((actuales) => [...actuales, ""]);
-  }, []);
-
-  const eliminarParticipante = useCallback((index: number) => {
-    setParticipantes((actuales) => actuales.filter((_, i) => i !== index));
-  }, []);
-
   const handleGenerate = async () => {
     setErrorMessage(null);
     setLoading(true);
@@ -81,12 +73,14 @@ export function useProtocolController(
         {
           materia,
           temas: temasFiltrados,
-          participantes: participantesFiltrados,
           tipo,
+          instruccionesAdicionales,
         },
         controller.signal
       );
       setCurrentProtocol(generatedProtocol);
+      setIsQuizApproved(false);
+      setCurrentQuiz(null);
     } catch (err) {
       if (
         controller.signal.aborted ||
@@ -108,55 +102,116 @@ export function useProtocolController(
     }
   };
 
-  const handleExportWord = async () => {
-    if (!currentProtocol) return;
+  const fetchQuiz = useCallback(async (protocol: Protocol) => {
+    setLoadingQuiz(true);
+    try {
+      const generatedQuiz = await appContainer.generateQuizUseCase.execute(protocol);
+      setCurrentQuiz(generatedQuiz);
+    } catch (err) {
+      appContainer.logger.error("Error al estructurar el cuestionario de evaluación:", err);
+    } finally {
+      setLoadingQuiz(false);
+    }
+  }, [appContainer]);
 
+  const executeExportWord = useCallback(async (protocol: Protocol) => {
     setExportingWord(true);
     try {
-      await appContainer.exportProtocolUseCase.execute(currentProtocol);
+      await appContainer.exportProtocolUseCase.execute(protocol);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMessage(`Error al descargar Word: ${msg}`);
     } finally {
       setExportingWord(false);
     }
-  };
+  }, [appContainer]);
 
-  const handleExportPdf = async () => {
-    if (!currentProtocol) return;
-
+  const executeExportPdf = useCallback(async (protocol: Protocol) => {
     setExportingPdf(true);
     try {
-      await appContainer.exportPdfUseCase.execute(currentProtocol);
+      await appContainer.exportPdfUseCase.execute(protocol);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMessage(`Error al descargar PDF: ${msg}`);
     } finally {
       setExportingPdf(false);
     }
-  };
+  }, [appContainer]);
+
+  const handleExportWord = useCallback(async () => {
+    if (!currentProtocol) return;
+
+    if (!isQuizApproved) {
+      setPendingDownloadFormat("word");
+      setIsQuizModalOpen(true);
+      if (!currentQuiz) {
+        fetchQuiz(currentProtocol);
+      }
+      return;
+    }
+
+    await executeExportWord(currentProtocol);
+  }, [currentProtocol, isQuizApproved, currentQuiz, fetchQuiz, executeExportWord]);
+
+  const handleExportPdf = useCallback(async () => {
+    if (!currentProtocol) return;
+
+    if (!isQuizApproved) {
+      setPendingDownloadFormat("pdf");
+      setIsQuizModalOpen(true);
+      if (!currentQuiz) {
+        fetchQuiz(currentProtocol);
+      }
+      return;
+    }
+
+    await executeExportPdf(currentProtocol);
+  }, [currentProtocol, isQuizApproved, currentQuiz, fetchQuiz, executeExportPdf]);
+
+  const handleQuizPassed = useCallback(async () => {
+    setIsQuizApproved(true);
+    if (currentProtocol) {
+      if (pendingDownloadFormat === "word") {
+        await executeExportWord(currentProtocol);
+      } else {
+        await executeExportPdf(currentProtocol);
+      }
+    }
+  }, [currentProtocol, pendingDownloadFormat, executeExportWord, executeExportPdf]);
+
+  const handleRetryGenerateQuiz = useCallback(() => {
+    if (currentProtocol) {
+      fetchQuiz(currentProtocol);
+    }
+  }, [currentProtocol, fetchQuiz]);
 
   return {
     materia,
     setMateria,
     temasTexto,
     setTemasTexto,
-    participantes,
     tipo,
     setTipo,
-    actualizarParticipante,
-    agregarParticipante,
-    eliminarParticipante,
+    instruccionesAdicionales,
+    setInstruccionesAdicionales,
     availableStrategies,
     activeStrategy,
     temasFiltrados,
-    participantesFiltrados,
     currentProtocol,
     loading,
     exportingWord,
     exportingPdf,
     logs,
     errorMessage,
+    // Cuestionario
+    isQuizApproved,
+    isQuizModalOpen,
+    setIsQuizModalOpen,
+    currentQuiz,
+    loadingQuiz,
+    pendingDownloadFormat,
+    handleQuizPassed,
+    handleRetryGenerateQuiz,
     handleGenerate,
     handleStop,
     handleExportWord,

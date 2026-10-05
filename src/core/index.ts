@@ -1,4 +1,5 @@
 export * from "./entities/protocol.entity";
+export * from "./entities/quiz.entity";
 export * from "./interfaces/ai-service.interface";
 export * from "./interfaces/document-exporter.interface";
 export * from "./interfaces/file-downloader.interface";

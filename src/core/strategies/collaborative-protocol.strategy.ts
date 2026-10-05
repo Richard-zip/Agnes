@@ -5,13 +5,10 @@ import { COLLABORATIVE_PROMPT } from "../prompts/collaborative.prompt";
 export class CollaborativeProtocolStrategy extends BaseProtocolStrategy {
   readonly id = "colaborativo";
   readonly label = "Colaborativo";
-  readonly requiresParticipants = true;
-  readonly defaultParticipantsText =
-    "Nombre del estudiante 1\nNombre del estudiante 2\nNombre del estudiante 3";
   readonly templatePath = "templates/PLANTILLA%20PROTOCOLO%20COLABORATIVO.docx";
 
   buildPrompt(input: ProtocolStrategyInput): string {
-    return this.formatSubstitutions(COLLABORATIVE_PROMPT, input, this.defaultParticipantsText);
+    return this.formatSubstitutions(COLLABORATIVE_PROMPT, input);
   }
 
   extractSections(rawText: string, input: ProtocolStrategyInput): Record<string, string> {
@@ -148,10 +145,6 @@ export class CollaborativeProtocolStrategy extends BaseProtocolStrategy {
 
     const sections = this.extractByHeadingMap(rawText, headingMap);
 
-    const fallbackParticipants = input.participantes
-      .map((p) => this.titleCaseName(p))
-      .filter(Boolean)
-      .join("\n");
     const fallbackTemas = input.temas
       .map((t) => this.cleanTopicName(t, false))
       .filter(Boolean)
@@ -174,7 +167,9 @@ export class CollaborativeProtocolStrategy extends BaseProtocolStrategy {
 
     const result: Record<string, string> = {
       title: `PROTOCOLO COLABORATIVO - ${materiaLimpia}`,
-      registro: sections.registro || fallbackParticipants || "Participantes por definir",
+      registro:
+        sections.registro ||
+        "Nombre del estudiante 1\nNombre del estudiante 2\nNombre del estudiante 3",
       descripcion:
         sections.descripcion ||
         `Este protocolo aborda ${listadoTemas} en el contexto de ${materiaLimpia}.`,

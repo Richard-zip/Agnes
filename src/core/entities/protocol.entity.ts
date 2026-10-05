@@ -6,14 +6,12 @@ export interface ProtocolSection {
 export interface ProtocolInput {
   materia: string;
   temas: string[];
-  participantes: string[];
   tipo: string;
 }
 
 export interface ProtocolMetadata {
   materia: string;
   temas: string[];
-  participantes: string[];
   tipo: string;
   createdAt: Date;
 }

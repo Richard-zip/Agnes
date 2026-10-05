@@ -26,6 +26,22 @@ export class MockAIService implements IAIService {
       }
     });
 
+    if (prompt.includes("10 preguntas") || prompt.includes("cuestionario")) {
+      const mockQuestions = Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        question: `Pregunta de evaluación ${i + 1} sobre el protocolo académico`,
+        options: [
+          `Opción correcta ${i + 1} sustentada en el documento`,
+          `Distractor plausible A para la pregunta ${i + 1}`,
+          `Distractor plausible B para la pregunta ${i + 1}`,
+          `Distractor plausible C para la pregunta ${i + 1}`,
+        ],
+        correctOptionIndex: 0,
+        explanation: `Justificación académica de la respuesta correcta para la pregunta ${i + 1}.`,
+      }));
+      return JSON.stringify(mockQuestions, null, 2);
+    }
+
     const isColab = prompt.includes("PROTOCOLO COLABORATIVO");
     if (isColab) {
       return `PROTOCOLO COLABORATIVO - Arquitectura de Software

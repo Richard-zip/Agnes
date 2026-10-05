@@ -11,6 +11,7 @@ import { IndividualProtocolStrategy } from "../../core/strategies/individual-pro
 import { CollaborativeProtocolStrategy } from "../../core/strategies/collaborative-protocol.strategy";
 import { GenerateProtocolUseCase } from "../../application/use-cases/generate-protocol.use-case";
 import { ExportProtocolUseCase } from "../../application/use-cases/export-protocol.use-case";
+import { GenerateQuizUseCase } from "../../application/use-cases/generate-quiz.use-case";
 import { IAIService } from "../../core/interfaces/ai-service.interface";
 import { IDocumentExporter } from "../../core/interfaces/document-exporter.interface";
 import { IFileDownloader } from "../../core/interfaces/file-downloader.interface";
@@ -24,6 +25,7 @@ export interface AppContainer {
   pdfExporter: IDocumentExporter;
   fileDownloader: IFileDownloader;
   generateProtocolUseCase: GenerateProtocolUseCase;
+  generateQuizUseCase: GenerateQuizUseCase;
   exportProtocolUseCase: ExportProtocolUseCase;
   exportPdfUseCase: ExportProtocolUseCase;
 }
@@ -66,6 +68,7 @@ export function createContainer(options: ContainerOptions = {}): AppContainer {
 
   // 4. Use Cases
   const generateProtocolUseCase = new GenerateProtocolUseCase(aiService, protocolRegistry, logger);
+  const generateQuizUseCase = new GenerateQuizUseCase(aiService, logger);
   const exportProtocolUseCase = new ExportProtocolUseCase(documentExporter, fileDownloader, logger);
   const exportPdfUseCase = new ExportProtocolUseCase(pdfExporter, fileDownloader, logger);
 
@@ -77,6 +80,7 @@ export function createContainer(options: ContainerOptions = {}): AppContainer {
     pdfExporter,
     fileDownloader,
     generateProtocolUseCase,
+    generateQuizUseCase,
     exportProtocolUseCase,
     exportPdfUseCase,
   };
