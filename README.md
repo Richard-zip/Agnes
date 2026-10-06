@@ -1,6 +1,10 @@
 # 🤖 Agnes — Generador de Protocolos Académicos con IA
 
-Agnes es una aplicación de escritorio diseñada para estudiantes e investigadores, impulsada por inteligencia artificial (Google Gemini) para estructurar, redactar y compilar protocolos académicos oficiales de forma automatizada.
+[![Licencia: MIT](https://img.shields.io/badge/Licencia-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Código Abierto](https://img.shields.io/badge/Código-Abierto-success.svg)](https://github.com/Richard-zip/ProtoIA)
+[![Uso Público](https://img.shields.io/badge/Uso-Público%20y%20Gratuito-brightgreen.svg)](#)
+
+Agnes es una aplicación de escritorio **de código abierto y de uso público**, diseñada para estudiantes, docentes e investigadores. Utiliza inteligencia artificial (Google Gemini) para estructurar, redactar y compilar protocolos académicos oficiales de forma automatizada y accesible para toda la comunidad académica.
 
 > 🎯 **Más que un generador, un garante de tu aprendizaje:**  
 > Agnes **no solo redacta el protocolo: asegura tu comprensión real de la temática**. Antes de permitir la descarga del documento oficial en Word (`.docx`) o PDF (`.pdf`), Agnes genera un **cuestionario evaluativo interactivo de 10 preguntas** formuladas con IA directamente sobre los conceptos y temas tratados en el documento. La descarga queda bloqueada hasta alcanzar una **aprobación mínima del 80%** (8/10 respuestas correctas), garantizando que el estudiante domine el contenido antes de presentarlo.
@@ -11,6 +15,7 @@ Agnes es una aplicación de escritorio diseñada para estudiantes e investigador
 
 ## ✨ Características Principales
 
+- 🌐 **100% Código Abierto y de Uso Público:** Software libre, transparente y accesible gratuitamente bajo licencia MIT para estudiantes, docentes e investigadores.
 - 📄 **Generación automatizada** de protocolos individuales y colaborativos adaptados a la Universidad de Cartagena.
 - 🧠 **Motor de Inteligencia Artificial:** Impulsado por Google Gemini (`gemini-3.8-flash` por defecto en su nivel de API gratuita).
 - 🎓 **Cuestionario Evaluativo Obligatorio (80% Mínimo para Descargar):** Antes de descargar el documento en Word o PDF, el usuario debe aprobar un cuestionario interactivo de 10 preguntas de selección múltiple sobre los conceptos abordados en el protocolo (requiere mínimo 8 de 10 respuestas correctas).
@@ -256,6 +261,6 @@ src/
 
 ---
 
-## 📄 Licencia
+## 📄 Licencia y Código Abierto
 
-Este proyecto está bajo la licencia **MIT**. Consulta el archivo `LICENSE` para más detalles.
+Este proyecto es una iniciativa de **código abierto y de uso público**, distribuida bajo los términos de la licencia **MIT**. Puedes usarlo, estudiarlo, compartirlo, modificarlo y contribuir al proyecto libremente y sin costo alguno. Consulta el archivo `LICENSE` para más detalles.
