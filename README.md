@@ -1,8 +1,9 @@
 # 🤖 Agnes — Generador de Protocolos Académicos con IA
 
-Agnes es una aplicación de escritorio diseñada para estudiantes e investigadores, que utiliza inteligencia artificial (Google Gemini) para estructurar, redactar y compilar protocolos académicos oficiales de forma automatizada. 
+Agnes es una aplicación de escritorio diseñada para estudiantes e investigadores, impulsada por inteligencia artificial (Google Gemini) para estructurar, redactar y compilar protocolos académicos oficiales de forma automatizada.
 
-El usuario ingresa la materia, los temas a tratar y los participantes; Agnes genera un protocolo completo, profesional y fiel a la normativa institucional, con visualización de páginas oficiales y exportación directa en formato Word (`.docx`) y PDF (`.pdf`).
+> 🎯 **Más que un generador, un garante de tu aprendizaje:**  
+> Agnes **no solo redacta el protocolo: asegura tu comprensión real de la temática**. Antes de permitir la descarga del documento oficial en Word (`.docx`) o PDF (`.pdf`), Agnes genera un **cuestionario evaluativo interactivo de 10 preguntas** formuladas con IA directamente sobre los conceptos y temas tratados en el documento. La descarga queda bloqueada hasta alcanzar una **aprobación mínima del 80%** (8/10 respuestas correctas), garantizando que el estudiante domine el contenido antes de presentarlo.
 
 > **⚠️ Nota Institucional:** Los protocolos generados por esta aplicación están adaptados exclusivamente a los estándares, formatos de tabla y estructura académica de la **Universidad de Cartagena**.
 
@@ -190,34 +191,6 @@ pnpm run build:win
 3. Ingresa tu clave obtenida de [Google AI Studio](https://aistudio.google.com/app/apikey).
 4. Presiona **Probar Conexión** para validar la comunicación con los servidores de Google.
 5. Haz clic en **Guardar Configuración**. La clave quedará almacenada localmente de forma segura en tu equipo.
-
----
-
-## 🧪 Pruebas Automatizadas y Principios SOLID
-
-El proyecto cuenta con una suite integral de pruebas arquitectónicas que validan el cumplimiento estricto de los principios **SOLID**, la limpieza de datos y la robustez de las exportaciones:
-
-```bash
-pnpm test
-```
-
-### Verificaciones incluidas en la suite:
-- **Test 1 (SRP):** Desacoplamiento de prompts independientes y responsabilidad única.
-- **Test 2 (LSP):** Sustitución de Liskov en estrategias de protocolo.
-- **Test 3 (OCP):** Extensibilidad abierta sin modificación de código fuente preexistente.
-- **Test 4 (ISP):** Segregación de interfaces (`IAIService`, `IDocumentExporter`, `IFileDownloader`).
-- **Test 5 (DIP):** Inversión de dependencias mediante contenedor IoC (`AppContainer`).
-- **Test 6:** Limpieza tipográfica de viñetas, eliminación de asteriscos parásitos, formato de bibliografía plano y estilo Times New Roman.
-- **Test 7:** Normalización de mayúsculas sostenidas, preservación de siglas técnicas (OWASP, SQL, etc.) y corrección de dobles puntos.
-- **Test 8:** Exportación e inyección XML de plantillas DOCX y exportador PDF.
-- **Test 9:** Filtrado inteligente de emojis y numeraciones en los nombres de temas.
-- **Test 10:** Configuración predeterminada del modelo gratuito `gemini-3.8-flash`.
-- **Test 11 & 12:** Detección de motor LibreOffice y visualización de hojas oficiales.
-- **Test 13:** Cancelación limpia de generación con `AbortController` (botón Stop).
-- **Test 14:** Recorte automático de saltos de página y supresión de páginas finales en blanco.
-- **Test 15:** Animación de carga arcade retro con estilo pixelado de Agnes.
-- **Test 16:** Carga nativa de plantillas DOCX por canal IPC para entornos de producción y AppImage (prevención de errores `Failed to fetch`).
-- **Test 17:** Cuestionario obligatorio de 10 preguntas (validación de aprobación mínima del 80%, recálculo dinámico de respuestas, modal interactivo, y generación de respaldo garantizado con conceptos sustantivos).
 
 ---
 
