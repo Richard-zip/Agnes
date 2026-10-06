@@ -28,9 +28,9 @@ export function parseGeminiError(error: unknown): FormattedAiError {
       isNetworkError: false,
       userTitle: "Servidores de Google en alta demanda temporal",
       userMessage:
-        "Los servidores de Google Gemini están experimentando un alto volumen de solicitudes a nivel global en este momento. Por favor, inténtalo más tarde. Recuerda que Agnes AI puede cometer errores, por lo que es importante que revises la información generada.",
+        "Los servidores de Google Gemini están experimentando un alto volumen de solicitudes a nivel global en este momento.",
       userRecommendation:
-        "Por favor, inténtalo más tarde o espera unos instantes. Ten en cuenta que Agnes AI puede cometer errores y es importante que revises el protocolo.",
+        "Por favor, espera unos instantes e inténtalo de nuevo.",
       rawError: raw,
     };
   }
@@ -52,9 +52,9 @@ export function parseGeminiError(error: unknown): FormattedAiError {
       isNetworkError: false,
       userTitle: "Intentos agotados temporalmente",
       userMessage:
-        "Se han agotado temporalmente los intentos permitidos por Google Gemini. Por favor, inténtalo más tarde. Recuerda que Agnes AI puede cometer errores y es importante que revises el protocolo generado.",
+        "Se han agotado temporalmente los intentos permitidos por Google Gemini.",
       userRecommendation:
-        "Por favor, inténtalo más tarde. Ten presente que Agnes AI puede cometer errores, por lo que es importante revisar el contenido.",
+        "Por favor, espera unos instantes antes de volver a intentar la generación.",
       rawError: raw,
     };
   }

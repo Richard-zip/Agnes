@@ -86,6 +86,8 @@ export class GeminiAIService implements IAIService {
       }
     }
 
-    throw new Error("Se han agotado temporalmente los intentos de generación. Por favor, inténtalo más tarde. Recuerda que Agnes AI puede cometer errores y es importante que revises el contenido generado.");
+    throw new Error(
+      "Se han agotado los intentos permitidos de generación. Por favor, espera unos momentos e inténtalo de nuevo."
+    );
   }
 }

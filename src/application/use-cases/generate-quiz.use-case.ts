@@ -13,9 +13,10 @@ export class GenerateQuizUseCase {
   async execute(protocol: Protocol, signal?: AbortSignal): Promise<Quiz> {
     const reqId = Date.now();
     const materia = protocol.metadata.materia || "Materia";
-    this.logger.info(`(${reqId}) Generando cuestionario de 10 preguntas para "${materia}"...`);
+    const temas = protocol.metadata.temas || [];
+    this.logger.info(`(${reqId}) Generando cuestionario de 10 preguntas para "${materia}" (temas: ${temas.join(", ")})...`);
 
-    const prompt = buildQuizPrompt(protocol.rawText, materia);
+    const prompt = buildQuizPrompt(protocol.rawText, materia, temas);
 
     try {
       const rawResponse = await this.aiService.generateContent(prompt, signal);
@@ -94,136 +95,230 @@ export class GenerateQuizUseCase {
   }
 
   /**
-   * Generador determinista de 10 preguntas cuando la IA falla o no tiene conexión,
-   * garantizando que el usuario siempre pueda responder y descargar su documento.
+   * Generador determinista de 10 preguntas estrictamente enfocado en los temas y conceptos
+   * técnicos del protocolo, empleado cuando la IA falla o no tiene conexión.
    */
   private generateFallbackQuiz(protocol: Protocol): QuizQuestion[] {
     const materia = protocol.metadata.materia || "la materia";
-    const temas = protocol.metadata.temas || [];
-    const primerTema = temas[0] || "los temas centrales";
-    const segundoTema = temas[1] || primerTema;
+    const temas =
+      protocol.metadata.temas && protocol.metadata.temas.length > 0
+        ? protocol.metadata.temas.filter(Boolean)
+        : ["Fundamentos conceptuales de la materia"];
+
+    const temaA = temas[0] || materia;
+    const temaB = temas[1] || temaA;
+    const temaC = temas[2] || temaB;
+
+    // Extraer conceptos y definiciones reales del protocolo si existen
+    const rawConceptos = protocol.extractedFields?.conceptos || "";
+    const conceptRegex =
+      /(?:(?:\d+[.)]|[-*•])\s*)?(?:\*\*)?([^*\n:–—]+?)(?:\*\*)?\s*(?::\s*|\s*[-–—]\s*|\s*:\s*\*\*\s*)([^\n]+)/g;
+    const extractedConcepts: Array<{ term: string; def: string }> = [];
+    let match: RegExpExecArray | null;
+    while ((match = conceptRegex.exec(rawConceptos)) !== null) {
+      const term = match[1].trim().replace(/^\*\*|\*\*$/g, "").trim();
+      let def = match[2].trim().replace(/^\*\*|\*\*$/g, "").trim();
+      if (def.length > 0 && !/[.?!]$/.test(def)) {
+        def += ".";
+      }
+      if (term.length >= 2 && def.length >= 6) {
+        extractedConcepts.push({ term, def });
+      }
+    }
+
+    const c0 = extractedConcepts[0];
+    const c1 = extractedConcepts[1];
+    const c2 = extractedConcepts[2];
+
+    const createQuestion = (
+      id: number,
+      question: string,
+      correctText: string,
+      distractors: [string, string, string],
+      correctIndex: number,
+      explanation: string
+    ): QuizQuestion => {
+      const options: string[] = [];
+      let distractorIdx = 0;
+      for (let i = 0; i < 4; i++) {
+        if (i === correctIndex) {
+          options.push(correctText);
+        } else {
+          options.push(distractors[distractorIdx++]);
+        }
+      }
+      return {
+        id,
+        question,
+        options,
+        correctOptionIndex: correctIndex,
+        explanation,
+      };
+    };
+
+    // Distribución equilibrada de la posición de la respuesta correcta
+    const positions = [0, 1, 2, 3, 1, 2, 0, 3, 2, 0];
 
     return [
-      {
-        id: 1,
-        question: `¿Cuál es el propósito formativo primordial del protocolo académico en ${materia}?`,
-        options: [
-          `Consolidar el aprendizaje conceptual y metodológico sobre ${primerTema}.`,
-          "Cumplir con un requisito puramente administrativo sin análisis crítico.",
-          "Memorizar listas bibliográficas sin aplicación práctica en el área.",
-          "Sustituir las sesiones presenciales de evaluación por texto libre.",
+      // 1. Definición conceptual de c0 o principio de temaA
+      createQuestion(
+        1,
+        c0
+          ? `¿Cuál de las siguientes afirmaciones define con mayor precisión técnica el concepto de «${c0.term}» en ${materia}?`
+          : `En el estudio de «${temaA}» dentro de ${materia}, ¿cuál es el principio conceptual prioritario?`,
+        c0
+          ? c0.def
+          : "Comprender los fundamentos técnicos y mecanismos esenciales que rigen su funcionamiento y diseño.",
+        [
+          c1 ? c1.def : "Un proceso puramente administrativo ajeno a los fundamentos operativos del área.",
+          `Una técnica empírica desaconsejada por las buenas prácticas contemporáneas en ${materia}.`,
+          `Un componente auxiliar sin incidencia directa en la estructura técnica de ${c0?.term || temaA}.`,
         ],
-        correctOptionIndex: 0,
-        explanation: "El protocolo tiene como fin pedagógico evidenciar la asimilación conceptual y metodológica de la materia.",
-      },
-      {
-        id: 2,
-        question: `Respecto a los objetivos formulados en el protocolo, ¿cuál es su enfoque cardinal?`,
-        options: [
-          "Definir metas orientadas a la comprensión profunda y la aplicación técnica de los temas.",
-          "Limitar el alcance exclusivamente a un repaso somero de conceptos básicos.",
-          "Evitar la vinculación con marcos o estándares internacionales del sector.",
-          "Redactar metas ambiguas sin indicadores verificables de aprendizaje.",
+        positions[0],
+        c0
+          ? `En el contenido analizado, «${c0.term}» se define con precisión como: ${c0.def}`
+          : `El dominio de «${temaA}» requiere comprender los mecanismos esenciales y su fundamento técnico.`
+      ),
+
+      // 2. Definición conceptual de c1 o meta de temaB
+      createQuestion(
+        2,
+        c1
+          ? `¿Cómo se define y delimita técnicamente «${c1.term}» en el contexto temático de ${materia}?`
+          : `Al abordar el tema «${temaB}» en ${materia}, ¿qué meta u objetivo técnico cardinal se persigue?`,
+        c1
+          ? c1.def
+          : "Dominar los modelos, patrones y criterios de calidad para solucionar problemas sistemáticamente.",
+        [
+          c0 ? c0.def : "Una convención informal sin aplicación en estándares técnicos verificables.",
+          c2 ? c2.def : "Un procedimiento accesorio de bajo impacto en el diseño general.",
+          `Un enfoque transitorio incompatible con arquitecturas sostenibles en ${materia}.`,
         ],
-        correctOptionIndex: 0,
-        explanation: "Los objetivos articulan metas verificables de aprendizaje teórico y práctico.",
-      },
-      {
-        id: 3,
-        question: `En relación con ${primerTema}, ¿qué aspecto metodológico se resalta en el documento?`,
-        options: [
-          "La investigación estructurada, el análisis crítico y la síntesis conceptual rigurosa.",
-          "La copia textual de fuentes secundarias sin contrastación de fuentes.",
-          "La omisión de definiciones operativas para simplificar la lectura.",
-          "El desinterés por la aplicabilidad profesional en entornos reales.",
+        positions[1],
+        c1
+          ? `En el texto técnico, «${c1.term}» se especifica formalmente como: ${c1.def}`
+          : `El aprendizaje de «${temaB}» se orienta al dominio de modelos y criterios de calidad para la resolución sistemática de problemas.`
+      ),
+
+      // 3. Rol técnico de c2 o función técnica de temaA
+      createQuestion(
+        3,
+        c2
+          ? `Dentro del marco conceptual de ${materia}, ¿qué función técnica cumple «${c2.term}»?`
+          : `¿Cuál es el rol o función técnica primordial de «${temaA}» en la estructuración de soluciones en ${materia}?`,
+        c2
+          ? c2.def
+          : "Establecer los lineamientos y reglas de diseño que aseguran la modularidad y solidez de la solución.",
+        [
+          c0 ? c0.def : "Un mecanismo auxiliar no determinante en el comportamiento del sistema.",
+          "Una directriz operativa obsoleta desestimada por los estándares actuales.",
+          "Una métrica subjetiva sin parámetros verificables en la ingeniería de la disciplina.",
         ],
-        correctOptionIndex: 0,
-        explanation: "La metodología promueve un proceso ordenado de indagación, síntesis y reflexión.",
-      },
-      {
-        id: 4,
-        question: `¿Qué función cumplen los conceptos clave y sus definiciones dentro de la estructura curricular del protocolo?`,
-        options: [
-          "Establecer la base semántica y teórica común necesaria para dominar los temas tratados.",
-          "Aumentar artificialmente la extensión del documento sin relevancia disciplinar.",
-          "Reemplazar los objetivos específicos del proceso de aprendizaje.",
-          "Desconectar la teoría de los casos de estudio aplicados.",
+        positions[2],
+        c2
+          ? `«${c2.term}» se conceptualiza técnicamente como: ${c2.def}`
+          : `«${temaA}» define los lineamientos que aseguran modularidad y solidez en las soluciones técnicas.`
+      ),
+
+      // 4. Beneficio de aplicación práctica de c0 o temaA
+      createQuestion(
+        4,
+        c0
+          ? `Al aplicar «${c0.term}» en proyectos reales de ${materia}, ¿qué beneficio técnico esencial se garantiza?`
+          : `Al aplicar «${temaA}» en proyectos de ingeniería de ${materia}, ¿qué beneficio estructural directo se obtiene?`,
+        "Optimizar la cohesión técnica, reducir la complejidad y facilitar el mantenimiento continuo.",
+        [
+          "Generar una dependencia crítica no documentada con herramientas propietarias de terceros.",
+          "Incrementar la fragilidad del diseño ante modificaciones en los requerimientos del entorno.",
+          "Obligar a una reescritura total del sistema ante cualquier variación menor en el flujo de trabajo.",
         ],
-        correctOptionIndex: 0,
-        explanation: "Los conceptos clave precisan las definiciones operativas que sustentan el aprendizaje.",
-      },
-      {
-        id: 5,
-        question: `Al abordar ${segundoTema}, ¿cómo se relacionan las discusiones con la práctica profesional?`,
-        options: [
-          "Permiten identificar escenarios reales de implementación, ventajas y desafíos técnicos.",
-          "Se limitan a conjeturas hipotéticas sin vigencia en el sector productivo.",
-          "Sostienen que la teoría debe mantenerse desvinculada del ámbito laboral.",
-          "Ignoran los criterios de calidad y buenas prácticas reconocidos en la disciplina.",
+        positions[3],
+        `La aplicación técnica correcta de «${c0?.term || temaA}» promueve cohesión, modularidad y sustentabilidad técnica.`
+      ),
+
+      // 5. Criterios de evaluación técnica y trade-offs de temaA
+      createQuestion(
+        5,
+        `¿Qué criterio de evaluación técnica resulta prioritario al implementar soluciones basadas en «${temaA}»?`,
+        "Evaluar el balance entre eficiencia, escalabilidad, mantenibilidad y restricciones operativas.",
+        [
+          "Priorizar exclusivamente la rapidez inicial sin medir la deuda técnica acumulada.",
+          "Omitir el análisis de riesgos técnicos y tolerancias ante contingencias del sistema.",
+          "Asumir que cualquier implementación funcional posee calidad arquitectónica suficiente.",
         ],
-        correctOptionIndex: 0,
-        explanation: "Las discusiones contrastan el marco teórico con situaciones reales y criterios de calidad.",
-      },
-      {
-        id: 6,
-        question: "¿Por qué es crucial contrastar diferentes perspectivas al analizar los temas del protocolo?",
-        options: [
-          "Porque enriquece el pensamiento crítico y permite fundamentar decisiones técnicas sólidas.",
-          "Porque elimina la necesidad de contar con conclusiones definitivas.",
-          "Porque genera confusión metodológica innecesaria en el proceso de estudio.",
-          "Porque descarta el uso de bibliografía académica en favor de opiniones aisladas.",
+        positions[4],
+        `La evaluación rigurosa de «${temaA}» demanda sopesar eficiencia, mantenibilidad y escalabilidad frente a los costos técnicos.`
+      ),
+
+      // 6. Buenas prácticas de ingeniería en temaB
+      createQuestion(
+        6,
+        `En relación con «${temaB}», ¿cuál es la mejor práctica de ingeniería recomendada para su análisis o implementación en ${materia}?`,
+        "Fundamentar las decisiones en métricas verificables, estándares reconocidos y pruebas de consistencia.",
+        [
+          "Tomar decisiones técnicas basadas únicamente en preferencias empíricas sin sustento analítico.",
+          "Descartar la interoperabilidad y el acoplamiento con otros componentes del entorno.",
+          "Prescindir de la validación de requerimientos funcionales y no funcionales del sector.",
         ],
-        correctOptionIndex: 0,
-        explanation: "El contraste de perspectivas fortalece el análisis crítico y la solidez argumentativa.",
-      },
-      {
-        id: 7,
-        question: "¿Cuál es el valor pedagógico de la sección de metodología reportada en el protocolo?",
-        options: [
-          "Transparentar el proceso cognitivo, investigativo y de análisis seguido para la actividad.",
-          "Ocultar las fuentes de información utilizadas durante el desarrollo.",
-          "Demostrar que el aprendizaje no requiere planificación previa ni método alguno.",
-          "Servir únicamente como relleno formal sin relevancia evaluativa.",
+        positions[5],
+        `Las mejores prácticas en «${temaB}» exigen decisiones respaldadas por estándares y validaciones verificables.`
+      ),
+
+      // 7. Integración sinérgica entre temas
+      createQuestion(
+        7,
+        `¿De qué manera interactúan y se articulan técnicamente «${temaA}» y «${temaB}» en el ámbito de ${materia}?`,
+        `De forma complementaria y sinérgica, donde los principios de «${temaA}» fortalecen la eficacia y alcance de «${temaB}».`,
+        [
+          "Como paradigmas incompatibles que no pueden convivir dentro de una misma solución integral.",
+          "Sin ningún tipo de interrelación conceptual ni técnica en los flujos de trabajo contemporáneos.",
+          "Como alternativas redundantes en las que la aplicación de una invalida la pertinencia de la otra.",
         ],
-        correctOptionIndex: 0,
-        explanation: "La metodología detalla las etapas de indagación y consolidación seguidas por el estudiante.",
-      },
-      {
-        id: 8,
-        question: `¿Qué importancia reviste la formulación de conclusiones orientadas a la asignatura "${materia}"?`,
-        options: [
-          "Sintetizar los hallazgos principales y proyectar su impacto medible en proyectos del área.",
-          "Reiterar palabra por palabra la introducción sin aportar conclusiones integradoras.",
-          "Demostrar que los temas no tienen repercusión práctica en la industria o la academia.",
-          "Evadir compromisos conceptuales con los estándares vigentes de la disciplina.",
+        positions[6],
+        `Los temas «${temaA}» y «${temaB}» se integran sinérgicamente para brindar una solución robusta y coherente.`
+      ),
+
+      // 8. Diagnóstico técnico y análisis de causas raíz en temaC
+      createQuestion(
+        8,
+        `Al diagnosticar o resolver dificultades técnicas vinculadas con «${temaC}», ¿qué enfoque metodológico es el más adecuado?`,
+        "Un análisis metódico de causas raíz basado en el marco conceptual y la evidencia técnica comprobable.",
+        [
+          "Aplicar cambios aleatorios sin registro técnico hasta que los síntomas desaparezcan temporalmente.",
+          "Ignorar la degradación progresiva mientras el sistema mantenga una operatividad parcial.",
+          "Reemplazar componentes arbitrariamente sin aislar primero el origen real de la discrepancia.",
         ],
-        correctOptionIndex: 0,
-        explanation: "Las conclusiones condensan el valor del aprendizaje obtenido y su aplicación futura.",
-      },
-      {
-        id: 9,
-        question: "¿Cuál es la exigencia institucional respecto a las fuentes bibliográficas citadas?",
-        options: [
-          "Estar referenciadas con rigor académico (normas APA) priorizando fuentes recientes y verificables.",
-          "Incluir enlaces rotos o fuentes sin verificación de autoría institucional.",
-          "Citar únicamente blogs anónimos o publicaciones en redes sociales no científicas.",
-          "Prescindir de la fecha y del autor para agilizar la entrega del informe.",
+        positions[7],
+        `El diagnóstico técnico riguroso en «${temaC}» requiere el aislamiento metódico de causas raíz sustentado en la evidencia.`
+      ),
+
+      // 9. Adaptabilidad, desacoplamiento y evolución a largo plazo
+      createQuestion(
+        9,
+        `¿Cómo contribuye el dominio profundo de «${temaA}» a la adaptabilidad y evolución futura de los sistemas en ${materia}?`,
+        "Permitiendo diseñar arquitecturas desacopladas y extensibles que absorben cambios con mínimo impacto negativo.",
+        [
+          "Creando estructuras monolíticas rígidas donde cualquier alteración genera efectos colaterales imprevistos.",
+          "Fomentando el uso de soluciones propietarias cerradas que impiden futuras modernizaciones.",
+          "Reduciendo la trazabilidad de los componentes para acelerar ciclos de despliegue provisional.",
         ],
-        correctOptionIndex: 0,
-        explanation: "Las referencias deben responder al estándar APA y asegurar fuentes acreditadas y verificables.",
-      },
-      {
-        id: 10,
-        question: "¿Qué compromiso asume el estudiante al aprobar y descargar este protocolo académico?",
-        options: [
-          "Reconocer y validar activamente los conocimientos plasmados para su aplicación ética y profesional.",
-          "Desatender las recomendaciones propuestas una vez archivado el archivo digital.",
-          "Considerar el protocolo como un fin en sí mismo sin continuidad académica.",
-          "Delegar la responsabilidad del contenido exclusivamente en herramientas externas.",
+        positions[8],
+        `El dominio de «${temaA}» facilita el desacoplamiento y la extensibilidad ante la evolución de requisitos.`
+      ),
+
+      // 10. Conclusión técnica integral de la materia y sus temas
+      createQuestion(
+        10,
+        `A partir del análisis técnico integral de «${materia}» y sus temas («${temas.slice(0, 3).join(", ")}»), ¿cuál es la conclusión técnica fundamental?`,
+        "Que su asimilación técnica rigurosa proporciona las competencias necesarias para diseñar e implementar soluciones de calidad verificable.",
+        [
+          "Que los fundamentos teóricos resultan prescindibles frente a la programación empírica sin diseño previo.",
+          "Que las metodologías y conceptos evaluados carecen de aplicabilidad práctica en la industria moderna.",
+          "Que los estándares técnicos pueden omitirse libremente sin comprometer la fiabilidad y seguridad de las soluciones.",
         ],
-        correctOptionIndex: 0,
-        explanation: "El protocolo representa la asimilación responsable y ética de las competencias del curso.",
-      },
+        positions[9],
+        `El estudio integral de «${materia}» y sus temas clave fundamenta la capacidad de diseñar soluciones técnicas de alta calidad.`
+      ),
     ];
   }
 }

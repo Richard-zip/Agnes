@@ -1,17 +1,13 @@
-/** Longitud máxima permitida para las instrucciones adicionales del usuario. */
-export const MAX_USER_INSTRUCTIONS_LENGTH = 2000;
-
 /**
- * Normaliza las instrucciones adicionales del usuario: recorta espacios,
- * colapsa saltos de línea excesivos y limita la longitud.
+ * Normaliza las instrucciones adicionales del usuario: recorta espacios
+ * y colapsa saltos de línea excesivos sin límite de caracteres.
  */
 export function normalizeUserInstructions(raw?: string | null): string {
   if (!raw) return "";
   return raw
     .replace(/\r\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
-    .trim()
-    .slice(0, MAX_USER_INSTRUCTIONS_LENGTH);
+    .trim();
 }
 
 /**

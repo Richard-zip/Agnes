@@ -855,6 +855,28 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
   assert(controllerCodeWithQuiz.includes("isQuizModalOpen"), "useProtocolController controla la apertura del modal de cuestionario");
   assert(controllerCodeWithQuiz.includes("handleQuizPassed"), "useProtocolController expone el callback handleQuizPassed");
 
+  // Caso 4: Generador de Respaldo Estructurado (Fallback) enfocado 100% en temas y conceptos técnicos
+  const failingAI = {
+    generateContent: async () => {
+      throw new Error("Simulated AI Failure");
+    },
+  };
+  const fallbackQuizUseCase = new GenerateQuizUseCase(failingAI, logger);
+  const fallbackQuiz = await fallbackQuizUseCase.execute(individualResult);
+
+  assert(fallbackQuiz.questions.length === 10, "El cuestionario de respaldo genera exactamente 10 preguntas");
+  for (const q of fallbackQuiz.questions) {
+    assert(q.options.length === 4, `Pregunta ${q.id} tiene 4 opciones`);
+    assert(q.correctOptionIndex >= 0 && q.correctOptionIndex < 4, `Pregunta ${q.id} tiene índice válido`);
+    assert(!q.question.toLowerCase().includes("propósito formativo del protocolo"), `Pregunta ${q.id} no hace meta-preguntas sobre propósito del protocolo`);
+    assert(!q.question.toLowerCase().includes("normas apa"), `Pregunta ${q.id} no hace preguntas sobre normas APA`);
+    assert(!q.question.toLowerCase().includes("valor pedagógico de la sección"), `Pregunta ${q.id} no hace preguntas sobre formato escolar`);
+  }
+  const hasTopicInQuestions = fallbackQuiz.questions.some(
+    (q) => q.question.includes("SOLID") || q.question.includes("Clean Architecture") || q.question.includes("Arquitectura de Software")
+  );
+  assert(hasTopicInQuestions, "El cuestionario de respaldo incluye los temas y conceptos reales del protocolo");
+
   console.log("\n🎉 TODAS LAS VERIFICACIONES DE ARQUITECTURA Y PRINCIPIOS SOLID PASARON EXITOSAMENTE.");
 
 }

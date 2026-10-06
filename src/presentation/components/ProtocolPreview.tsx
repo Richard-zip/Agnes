@@ -162,15 +162,6 @@ export const ProtocolPreview: React.FC<ProtocolPreviewProps> = ({
 
               <p className="error-banner-message">{errorMessage}</p>
 
-              <div className="error-banner-disclaimer">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
-                <span><strong>Aviso:</strong> Agnes AI puede cometer errores. Es importante que revises y verifiques la información generada.</span>
-              </div>
-
               {onRequestConfig && errorMessage.toLowerCase().includes("api key") ? (
                 <div className="error-banner-action">
                   <button

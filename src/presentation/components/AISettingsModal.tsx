@@ -147,7 +147,27 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({
               <label htmlFor="settings-api-key" className="field-label">
                 Google Gemini API Key
               </label>
-              <span className="field-badge accent">Requerido</span>
+              <div className="field-header-actions">
+                <span className="field-badge accent">Requerido</span>
+                {apiKey.trim().length > 0 && (
+                  <button
+                    type="button"
+                    className="field-clear-btn"
+                    onClick={() => {
+                      setApiKey("");
+                      setValidationError(null);
+                    }}
+                    title="Limpiar API Key"
+                    aria-label="Limpiar API Key"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    <span>Limpiar</span>
+                  </button>
+                )}
+              </div>
             </div>
             <div className="input-with-action">
               <input
@@ -163,6 +183,23 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({
                 autoComplete="off"
                 spellCheck="false"
               />
+              {apiKey.trim().length > 0 && (
+                <button
+                  type="button"
+                  className="input-clear-btn"
+                  onClick={() => {
+                    setApiKey("");
+                    setValidationError(null);
+                  }}
+                  title="Limpiar campo"
+                  aria-label="Limpiar campo"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
               <button
                 type="button"
                 className="input-eye-btn"

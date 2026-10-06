@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Quiz, QuizEvaluationResult } from "../../core/entities/quiz.entity";
 
 export interface ProtocolQuizModalProps {
@@ -20,9 +20,11 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
   onPassed,
   targetDownloadFormat,
 }) => {
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
   const [evaluation, setEvaluation] = useState<QuizEvaluationResult | null>(null);
   const [validationWarning, setValidationWarning] = useState<string | null>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   // Reiniciar estado si cambia el quiz
   useEffect(() => {
@@ -30,6 +32,8 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
       setUserAnswers({});
       setEvaluation(null);
       setValidationWarning(null);
+      setCurrentIndex(0);
+      bodyRef.current?.scrollTo({ top: 0, behavior: "auto" });
     }
   }, [quiz]);
 
@@ -49,6 +53,28 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
     }));
   };
 
+  const handleNext = () => {
+    if (currentIndex < totalQuestions - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      setValidationWarning(null);
+      bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+      setValidationWarning(null);
+      bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleGoToQuestion = (index: number) => {
+    setCurrentIndex(index);
+    setValidationWarning(null);
+    bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleEvaluate = () => {
     if (!quiz) return;
 
@@ -56,12 +82,26 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
       setValidationWarning(
         `Has respondido ${answeredCount} de ${totalQuestions} preguntas. Por favor responde todas las preguntas antes de verificar.`
       );
+      bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
 
     setValidationWarning(null);
     const result = quiz.evaluate(userAnswers);
     setEvaluation(result);
+
+    // Si reprobó, redirigir automáticamente a la primera pregunta incorrecta para facilitarle la corrección
+    if (!result.passed) {
+      const firstWrong = quiz.questions.findIndex((q) => {
+        const r = result.questionResults.find((res) => res.questionId === q.id);
+        return r && !r.isCorrect;
+      });
+      if (firstWrong !== -1) {
+        setCurrentIndex(firstWrong);
+      }
+    }
+
+    bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleProceedDownload = () => {
@@ -72,6 +112,11 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
   };
 
   const formatLabel = targetDownloadFormat === "word" ? "Word (.docx)" : "PDF (.pdf)";
+  const currentQuestion = quiz?.questions[currentIndex];
+  const selectedOption = currentQuestion ? userAnswers[currentQuestion.id] : undefined;
+  const currentResult = evaluation?.questionResults.find((r) => r.questionId === currentQuestion?.id);
+  const isCorrect = evaluation !== null && currentResult?.isCorrect;
+  const isIncorrect = evaluation !== null && currentResult && !currentResult.isCorrect;
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="quiz-modal-title">
@@ -90,7 +135,7 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
               Evaluación de Comprensión del Protocolo
             </h2>
             <p className="modal-subtitle">
-              Responde las 10 preguntas de selección múltiple sobre el documento generado para habilitar la descarga.
+              Responde las 10 preguntas de selección múltiple sobre los temas estudiados para habilitar la descarga.
             </p>
           </div>
           <button
@@ -107,8 +152,8 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="modal-body quiz-modal-body">
-          {/* Regla de aprobación */}
+        <div ref={bodyRef} className="modal-body quiz-modal-body">
+          {/* Regla de aprobación y contador */}
           <div className="quiz-target-banner">
             <div className="quiz-target-info">
               <span className="quiz-target-badge">Requisito Obligatorio</span>
@@ -123,13 +168,62 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
             )}
           </div>
 
+          {/* Stepper / Paginación numérica interactiva (1 a 10) */}
+          {!loadingQuiz && quiz && (
+            <div className="quiz-stepper-wrap">
+              <div className="quiz-stepper-info">
+                <span className="quiz-stepper-label">
+                  Pregunta {currentIndex + 1} de {totalQuestions}
+                </span>
+                <span className="quiz-stepper-hint">
+                  Haz clic en cualquier número para ir directamente a esa pregunta
+                </span>
+              </div>
+              <div className="quiz-stepper" role="tablist" aria-label="Selector de preguntas">
+                {quiz.questions.map((q, idx) => {
+                  const isCurrent = idx === currentIndex;
+                  const isAnswered = userAnswers[q.id] !== undefined;
+                  const qResult = evaluation?.questionResults.find((r) => r.questionId === q.id);
+                  const isQCorrect = evaluation !== null && qResult && qResult.isCorrect;
+                  const isQIncorrect = evaluation !== null && qResult && !qResult.isCorrect;
+
+                  let statusClass = "";
+                  if (evaluation !== null) {
+                    statusClass = isQCorrect ? "step-correct" : "step-incorrect";
+                  } else if (isAnswered) {
+                    statusClass = "step-answered";
+                  }
+
+                  return (
+                    <button
+                      key={q.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={isCurrent}
+                      className={`quiz-step-chip ${isCurrent ? "current" : ""} ${statusClass}`}
+                      onClick={() => handleGoToQuestion(idx)}
+                      title={`Pregunta ${idx + 1}${isAnswered ? " (Respondida)" : ""}${
+                        isQCorrect ? " (Correcta)" : ""
+                      }${isQIncorrect ? " (Incorrecta)" : ""}`}
+                    >
+                      <span className="step-num">{idx + 1}</span>
+                      {evaluation !== null && (
+                        <span className="step-icon">{isQCorrect ? "✓" : "✗"}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Estado de carga */}
           {loadingQuiz && (
             <div className="quiz-loading-container">
               <div className="quiz-loading-spinner" />
               <p className="quiz-loading-title">Elaborando cuestionario con IA...</p>
               <p className="quiz-loading-subtitle">
-                Analizando los conceptos, objetivos y conclusiones de tu protocolo para formular 10 preguntas personalizadas.
+                Analizando los conceptos técnicos y temas de tu protocolo para formular 10 preguntas personalizadas.
               </p>
             </div>
           )}
@@ -175,7 +269,7 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
                 <p>
                   {evaluation.passed
                     ? `Has demostrado un dominio sobresaliente del protocolo. Ya puedes descargar tu documento en formato ${formatLabel}.`
-                    : "Revisa las preguntas marcadas en rojo a continuación, modifica tus respuestas y vuelve a comprobarlas hasta alcanzar el 80%."}
+                    : "Revisa las preguntas marcadas en rojo usando los números arriba, modifica tus respuestas y vuelve a comprobarlas hasta alcanzar el 80%."}
                 </p>
               </div>
             </div>
@@ -193,63 +287,100 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
             </div>
           )}
 
-          {/* Listado de 10 preguntas */}
-          {!loadingQuiz && quiz && (
-            <div className="quiz-questions-list">
-              {quiz.questions.map((question, qIdx) => {
-                const selectedOption = userAnswers[question.id];
-                const qResult = evaluation?.questionResults.find((r) => r.questionId === question.id);
-                const isIncorrect = evaluation !== null && qResult && !qResult.isCorrect;
-                const isCorrect = evaluation !== null && qResult && qResult.isCorrect;
+          {/* Pregunta Paginada Activa (1 pregunta a la vez) */}
+          {!loadingQuiz && quiz && currentQuestion && (
+            <div className="quiz-paginated-container">
+              <div
+                key={currentQuestion.id}
+                className={`quiz-question-card paginated ${isIncorrect ? "incorrect" : ""} ${isCorrect ? "correct" : ""}`}
+              >
+                <div className="quiz-question-header">
+                  <span className="quiz-question-number">
+                    {String(currentIndex + 1).padStart(2, "0")} / {String(totalQuestions).padStart(2, "0")}
+                  </span>
+                  <h3 className="quiz-question-title">{currentQuestion.question}</h3>
+                  {isCorrect && <span className="quiz-badge-correct">✓ Correcta</span>}
+                  {isIncorrect && <span className="quiz-badge-incorrect">✗ Incorrecta</span>}
+                </div>
 
-                return (
-                  <div
-                    key={question.id}
-                    className={`quiz-question-card ${isIncorrect ? "incorrect" : ""} ${isCorrect ? "correct" : ""}`}
-                  >
-                    <div className="quiz-question-header">
-                      <span className="quiz-question-number">
-                        {String(qIdx + 1).padStart(2, "0")}
-                      </span>
-                      <h3 className="quiz-question-title">{question.question}</h3>
-                      {isCorrect && <span className="quiz-badge-correct">✓ Correcta</span>}
-                      {isIncorrect && <span className="quiz-badge-incorrect">✗ Incorrecta</span>}
-                    </div>
+                <div className="quiz-options-group" role="radiogroup" aria-label={`Pregunta ${currentIndex + 1}`}>
+                  {currentQuestion.options.map((option, optIdx) => {
+                    const isSelected = selectedOption === optIdx;
+                    const optionLetter = String.fromCharCode(65 + optIdx); // A, B, C, D
 
-                    <div className="quiz-options-group" role="radiogroup" aria-label={`Pregunta ${qIdx + 1}`}>
-                      {question.options.map((option, optIdx) => {
-                        const isSelected = selectedOption === optIdx;
-                        const optionLetter = String.fromCharCode(65 + optIdx); // A, B, C, D
-
-                        return (
-                          <label
-                            key={optIdx}
-                            className={`quiz-option-label ${isSelected ? "selected" : ""}`}
-                          >
-                            <input
-                              type="radio"
-                              name={`question-${question.id}`}
-                              value={optIdx}
-                              checked={isSelected}
-                              onChange={() => handleSelectOption(question.id, optIdx)}
-                              className="quiz-option-radio"
-                            />
-                            <span className="quiz-option-letter">{optionLetter}</span>
-                            <span className="quiz-option-text">{option}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-
-                    {isIncorrect && (
-                      <div className="quiz-question-feedback">
-                        <span className="quiz-feedback-label">Pista conceptual:</span>
-                        <p className="quiz-feedback-text">{question.explanation}</p>
+                    return (
+                      <div
+                        key={optIdx}
+                        role="radio"
+                        aria-checked={isSelected}
+                        tabIndex={0}
+                        className={`quiz-option-label ${isSelected ? "selected" : ""}`}
+                        onClick={() => handleSelectOption(currentQuestion.id, optIdx)}
+                        onKeyDown={(e) => {
+                          if (e.key === " " || e.key === "Enter") {
+                            e.preventDefault();
+                            handleSelectOption(currentQuestion.id, optIdx);
+                          }
+                        }}
+                      >
+                        <span className="quiz-option-letter">{optionLetter}</span>
+                        <span className="quiz-option-text">{option}</span>
                       </div>
-                    )}
+                    );
+                  })}
+                </div>
+
+                {isIncorrect && (
+                  <div className="quiz-question-feedback">
+                    <span className="quiz-feedback-label">Pista conceptual:</span>
+                    <p className="quiz-feedback-text">{currentQuestion.explanation}</p>
                   </div>
-                );
-              })}
+                )}
+
+                {/* Controles de navegación de la tarjeta paginada */}
+                <div className="quiz-card-nav">
+                  <button
+                    type="button"
+                    className="btn btn-secondary quiz-nav-btn"
+                    onClick={handlePrevious}
+                    disabled={currentIndex === 0}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    <span>Pregunta anterior</span>
+                  </button>
+
+                  <span className="quiz-nav-status">
+                    {selectedOption !== undefined ? "✓ Opción seleccionada" : "Selecciona una opción"}
+                  </span>
+
+                  {currentIndex < totalQuestions - 1 ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary quiz-nav-btn quiz-btn-next"
+                      onClick={handleNext}
+                    >
+                      <span>Siguiente pregunta</span>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn-primary quiz-nav-btn quiz-btn-verify"
+                      onClick={handleEvaluate}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m9 12 2 2 4-4" />
+                        <circle cx="12" cy="12" r="10" />
+                      </svg>
+                      <span>{evaluation ? "Reintentar comprobación" : "Verificar respuestas"}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -281,18 +412,46 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
                 <span>Descargar {formatLabel}</span>
               </button>
             ) : (
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleEvaluate}
-                disabled={loadingQuiz || !quiz}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m9 12 2 2 4-4" />
-                  <circle cx="12" cy="12" r="10" />
-                </svg>
-                <span>{evaluation ? "Reintentar comprobación" : "Verificar respuestas"}</span>
-              </button>
+              <>
+                {currentIndex > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary quiz-footer-prev-btn"
+                    onClick={handlePrevious}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                    <span>Anterior</span>
+                  </button>
+                )}
+
+                {currentIndex < totalQuestions - 1 ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary quiz-footer-next-btn"
+                    onClick={handleNext}
+                  >
+                    <span>Siguiente pregunta</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleEvaluate}
+                    disabled={loadingQuiz || !quiz}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m9 12 2 2 4-4" />
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                    <span>{evaluation ? "Reintentar comprobación" : "Verificar respuestas"}</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

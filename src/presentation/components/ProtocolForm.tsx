@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import { IProtocolStrategy } from "../../core/interfaces/protocol-strategy.interface";
-import { MAX_USER_INSTRUCTIONS_LENGTH } from "../../core/prompts/user-instructions.prompt";
 
 interface ProtocolFormProps {
   materia: string;
@@ -95,15 +94,47 @@ export const ProtocolForm: React.FC<ProtocolFormProps> = ({
           <label htmlFor="input-materia" className="field-label">
             Asignatura o Materia
           </label>
+          {materia.trim().length > 0 && !loading && (
+            <button
+              type="button"
+              className="field-clear-btn"
+              onClick={() => onMateriaChange("")}
+              title="Limpiar asignatura"
+              aria-label="Limpiar asignatura"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              <span>Limpiar</span>
+            </button>
+          )}
         </div>
-        <input
-          id="input-materia"
-          className="field-input"
-          value={materia}
-          onChange={(e) => onMateriaChange(e.target.value)}
-          placeholder="Ej. Ingeniería de Software, Metodología..."
-          autoComplete="off"
-        />
+        <div className="field-input-wrapper">
+          <input
+            id="input-materia"
+            className="field-input"
+            value={materia}
+            onChange={(e) => onMateriaChange(e.target.value)}
+            placeholder="Ej. Ingeniería de Software, Metodología..."
+            autoComplete="off"
+            disabled={loading}
+          />
+          {materia.trim().length > 0 && !loading && (
+            <button
+              type="button"
+              className="field-inner-clear-btn"
+              onClick={() => onMateriaChange("")}
+              title="Limpiar campo de asignatura"
+              aria-label="Limpiar campo de asignatura"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Campo Temas */}
@@ -112,9 +143,26 @@ export const ProtocolForm: React.FC<ProtocolFormProps> = ({
           <label htmlFor="textarea-temas" className="field-label">
             Temas de Aprendizaje
           </label>
-          {temasCount > 0 && (
-            <span className="field-badge">{temasCount} {temasCount === 1 ? "tema" : "temas"}</span>
-          )}
+          <div className="field-header-actions">
+            {temasCount > 0 && (
+              <span className="field-badge">{temasCount} {temasCount === 1 ? "tema" : "temas"}</span>
+            )}
+            {temasTexto.trim().length > 0 && !loading && (
+              <button
+                type="button"
+                className="field-clear-btn"
+                onClick={() => onTemasTextoChange("")}
+                title="Limpiar temas de aprendizaje"
+                aria-label="Limpiar temas de aprendizaje"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+                <span>Limpiar</span>
+              </button>
+            )}
+          </div>
         </div>
         <textarea
           id="textarea-temas"
@@ -123,6 +171,7 @@ export const ProtocolForm: React.FC<ProtocolFormProps> = ({
           onChange={(e) => onTemasTextoChange(e.target.value)}
           placeholder="Escribe los temas tratados (uno por línea o como texto corrido)..."
           rows={5}
+          disabled={loading}
         />
         <p className="field-hint">
           Puedes pegar viñetas o texto continuo; la IA estructurará cada unidad académica.
@@ -150,6 +199,24 @@ export const ProtocolForm: React.FC<ProtocolFormProps> = ({
 
         {instruccionesAbiertas && (
           <div id="instructions-body" className="instructions-body">
+            <div className="instructions-header-row">
+              <span className="field-hint instructions-header-label">Ajuste de redacción personalizado</span>
+              {tieneInstrucciones && !loading && (
+                <button
+                  type="button"
+                  className="field-clear-btn"
+                  onClick={() => onInstruccionesAdicionalesChange("")}
+                  title="Limpiar instrucciones adicionales"
+                  aria-label="Limpiar instrucciones adicionales"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                  <span>Limpiar</span>
+                </button>
+              )}
+            </div>
             <textarea
               id="textarea-instrucciones"
               className="field-textarea instructions-textarea"
@@ -160,7 +227,6 @@ export const ProtocolForm: React.FC<ProtocolFormProps> = ({
                 "Ej. Los objetivos específicos deben ser 3 y enfocarse en seguridad."
               }
               rows={4}
-              maxLength={MAX_USER_INSTRUCTIONS_LENGTH}
               disabled={loading}
               aria-describedby="instrucciones-hint"
             />
@@ -170,15 +236,23 @@ export const ProtocolForm: React.FC<ProtocolFormProps> = ({
               </p>
               <div className="instructions-meta">
                 <span className="instructions-counter">
-                  {instruccionesAdicionales.length}/{MAX_USER_INSTRUCTIONS_LENGTH}
+                  {instruccionesAdicionales.length > 0
+                    ? `${instruccionesAdicionales.length} caracteres`
+                    : "Sin límite de caracteres"}
                 </span>
                 {tieneInstrucciones && !loading && (
                   <button
                     type="button"
-                    className="instructions-clear"
+                    className="field-clear-btn"
                     onClick={() => onInstruccionesAdicionalesChange("")}
+                    title="Limpiar instrucciones adicionales"
+                    aria-label="Limpiar instrucciones adicionales"
                   >
-                    Limpiar
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    <span>Limpiar</span>
                   </button>
                 )}
               </div>
