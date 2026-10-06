@@ -10,12 +10,18 @@ El usuario ingresa la materia, los temas a tratar y los participantes; Agnes gen
 
 ## ✨ Características Principales
 
-- 📄 **Generación automatizada** de protocolos individuales y colaborativos.
+- 📄 **Generación automatizada** de protocolos individuales y colaborativos adaptados a la Universidad de Cartagena.
 - 🧠 **Motor de Inteligencia Artificial:** Impulsado por Google Gemini (`gemini-3.8-flash` por defecto en su nivel de API gratuita).
+- 🎓 **Cuestionario Evaluativo Obligatorio (80% Mínimo para Descargar):** Antes de descargar el documento en Word o PDF, el usuario debe aprobar un cuestionario interactivo de 10 preguntas de selección múltiple sobre los conceptos abordados en el protocolo (requiere mínimo 8 de 10 respuestas correctas).
+- 📑 **Paginación Interactiva del Cuestionario:** Navegación pregunta por pregunta con stepper numerado del 1 al 10, indicadores de estado (respondida, correcta e incorrecta), pistas conceptuales y reintentos dinámicos.
+- ✍️ **Instrucciones Adicionales sin Límite:** Permite ingresar indicaciones personalizadas sobre el enfoque o redacción de cualquier sección, con texto ilimitado (sin restricción de 2000 caracteres) y contador en tiempo real.
 - 📑 **Visualización de Páginas Oficiales:** Renderizado previo página por página, idéntico al resultado impreso en Word y PDF.
 - 📥 **Exportación Profesional:** Generación limpia de archivos Word (`.docx`) basados en las plantillas oficiales y conversión nativa a PDF (`.pdf`).
+- 🧹 **Botones de Limpieza Rápida:** Acceso rápido para vaciar con un solo clic los campos de asignatura, temas, instrucciones y clave API.
+- 📜 **Desacoplamiento de Scroll:** Paneles independientes con contención de desplazamiento (`overscroll-behavior: contain`) para evitar movimientos cruzados indeseados.
 - 🛑 **Control de Flujo:** Botón de detención inmediata de generación (Stop) mediante `AbortController`.
 - 🖨️ **Sin Páginas Sobrantes:** Algoritmo de compactación XML de tablas y recorte de páginas en blanco para evitar hojas residuales.
+- ♿ **Accesibilidad y Rendimiento Certificados (WCAG AA):** Soporte para reducción de movimiento (`prefers-reduced-motion`), objetivos táctiles de 44px, navegación por teclado accesible y animaciones en GPU sin *layout thrashing*.
 - 🖥️ **Multiplataforma:** Compatible de forma nativa con **Linux** (AppImage) y **Windows** (Instalador NSIS y Portable) mediante Electron.
 - 🔒 **Canal IPC Nativo y Seguro:** Carga directa de plantillas y recursos sin bloqueos de red o errores de *fetch*.
 
@@ -211,6 +217,7 @@ pnpm test
 - **Test 14:** Recorte automático de saltos de página y supresión de páginas finales en blanco.
 - **Test 15:** Animación de carga arcade retro con estilo pixelado de Agnes.
 - **Test 16:** Carga nativa de plantillas DOCX por canal IPC para entornos de producción y AppImage (prevención de errores `Failed to fetch`).
+- **Test 17:** Cuestionario obligatorio de 10 preguntas (validación de aprobación mínima del 80%, recálculo dinámico de respuestas, modal interactivo, y generación de respaldo garantizado con conceptos sustantivos).
 
 ---
 
@@ -221,11 +228,13 @@ El sistema sigue una **Arquitectura Hexagonal (Puertos y Adaptadores)**:
 ```
 src/
 ├── core/                               # CAPA DE DOMINIO (Reglas de negocio puras)
-│   ├── entities/                       # Entidades (Protocol, ProtocolSection)
+│   ├── entities/                       # Entidades (Protocol, ProtocolSection, Quiz)
 │   ├── interfaces/                     # Puertos / Contratos (IAIService, IDocumentExporter, etc.)
-│   ├── prompts/                        # Prompts aislados por estrategia (SRP)
+│   ├── prompts/                        # Prompts aislados por estrategia y caso de uso
 │   │   ├── individual.prompt.ts
-│   │   └── collaborative.prompt.ts
+│   │   ├── collaborative.prompt.ts
+│   │   ├── user-instructions.prompt.ts
+│   │   └── quiz.prompt.ts
 │   ├── strategies/                     # Patrón Estrategia + Registro (Open/Closed Principle)
 │   │   ├── base-protocol.strategy.ts
 │   │   ├── individual-protocol.strategy.ts
@@ -237,6 +246,7 @@ src/
 │   ├── dtos/                           # DTOs de entrada y validación
 │   └── use-cases/                      # Orquestadores de negocio
 │       ├── generate-protocol.use-case.ts
+│       ├── generate-quiz.use-case.ts
 │       └── export-protocol.use-case.ts
 │
 ├── infrastructure/                     # CAPA DE INFRAESTRUCTURA (Adaptadores)
@@ -248,7 +258,7 @@ src/
 │   └── di/                             # Composition Root (Inversión de Dependencias)
 │
 ├── presentation/                       # CAPA DE PRESENTACIÓN (React 18)
-│   ├── components/                     # Componentes desacoplados (ProtocolForm, DocxPreview, etc.)
+│   ├── components/                     # Componentes desacoplados (ProtocolForm, ProtocolQuizModal, DocxPreview, etc.)
 │   ├── hooks/                          # useProtocolController (mediador React <-> Casos de uso)
 │   └── ProtocolApp.tsx                 # Ensamblado principal de la interfaz
 │
