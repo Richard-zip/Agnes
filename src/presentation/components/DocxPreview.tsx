@@ -5,6 +5,13 @@ import { IDocumentExporter } from "../../core/interfaces/document-exporter.inter
 interface DocxPreviewProps {
   protocol: Protocol;
   documentExporter: IDocumentExporter;
+  materia?: string;
+  isExpanded?: boolean;
+  onToggleExpanded?: () => void;
+  onExportWord?: () => void;
+  onExportPdf?: () => void;
+  exportingWord?: boolean;
+  exportingPdf?: boolean;
 }
 
 async function blobToBase64(blob: Blob): Promise<string> {
@@ -20,7 +27,17 @@ async function blobToBase64(blob: Blob): Promise<string> {
   });
 }
 
-export const DocxPreview: React.FC<DocxPreviewProps> = ({ protocol, documentExporter }) => {
+export const DocxPreview: React.FC<DocxPreviewProps> = ({
+  protocol,
+  documentExporter,
+  materia,
+  isExpanded: controlledExpanded,
+  onToggleExpanded: controlledToggleExpanded,
+  onExportWord,
+  onExportPdf,
+  exportingWord,
+  exportingPdf,
+}) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const [pages, setPages] = useState<string[]>([]);
@@ -29,6 +46,16 @@ export const DocxPreview: React.FC<DocxPreviewProps> = ({ protocol, documentExpo
   const [error, setError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState<number>(0);
   const [zoom, setZoom] = useState<number>(100);
+  const [internalExpanded, setInternalExpanded] = useState<boolean>(false);
+
+  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
+  const toggleExpanded = useCallback(() => {
+    if (controlledToggleExpanded) {
+      controlledToggleExpanded();
+    } else {
+      setInternalExpanded((v) => !v);
+    }
+  }, [controlledToggleExpanded]);
 
   const handleZoomIn = () => setZoom((prev) => Math.min(150, prev + 10));
   const handleZoomOut = () => setZoom((prev) => Math.max(50, prev - 10));
@@ -38,13 +65,37 @@ export const DocxPreview: React.FC<DocxPreviewProps> = ({ protocol, documentExpo
     if (!scrollAreaRef.current) return;
     const availableWidth = scrollAreaRef.current.clientWidth - 56;
     const sheetBaseWidth = 816; // 8.5in estándar a 96 DPI
-    if (availableWidth > 0 && availableWidth < sheetBaseWidth) {
-      const calculated = Math.max(50, Math.floor((availableWidth / sheetBaseWidth) * 100));
+    if (availableWidth > 0) {
+      const calculated = Math.min(150, Math.max(50, Math.floor((availableWidth / sheetBaseWidth) * 100)));
       setZoom(calculated);
     } else {
       setZoom(100);
     }
   }, []);
+
+  const handleToggleExpanded = () => {
+    toggleExpanded();
+  };
+
+  useEffect(() => {
+    if (isExpanded) {
+      const timer = setTimeout(() => {
+        handleFitWidth();
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [isExpanded, handleFitWidth]);
+
+  useEffect(() => {
+    if (!isExpanded) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        toggleExpanded();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isExpanded, toggleExpanded]);
 
   const renderWithLibreOffice = useCallback(
     async (docxBlob: Blob): Promise<boolean> => {
@@ -136,15 +187,19 @@ export const DocxPreview: React.FC<DocxPreviewProps> = ({ protocol, documentExpo
   }, [loadDocument, retryKey]);
 
   return (
-    <div className="docx-preview-root">
+    <div className={`docx-preview-root ${isExpanded ? "is-expanded" : ""}`}>
       {!loading && !error && (
         <div className="docx-preview-toolbar" role="toolbar" aria-label="Controles de vista previa">
           <div className="docx-preview-toolbar-left">
             <div className="docx-preview-badge-status">
-              <span className="lo-engine-pill">Vista Previa Oficial</span>
-              <span>
-                {pages.length} {pages.length === 1 ? "página oficial" : "páginas oficiales"} (idéntico a Word y PDF)
+              <span className="docx-pages-pill">
+                {pages.length} {pages.length === 1 ? "página" : "páginas"}
               </span>
+              {isExpanded && materia && (
+                <span className="docx-expanded-materia-title" title={materia}>
+                  {materia}
+                </span>
+              )}
             </div>
           </div>
 
@@ -184,6 +239,71 @@ export const DocxPreview: React.FC<DocxPreviewProps> = ({ protocol, documentExpo
             >
               Ajustar
             </button>
+
+            <button
+              type="button"
+              className={`docx-zoom-fit-btn docx-expand-btn ${isExpanded ? "active" : ""}`}
+              onClick={handleToggleExpanded}
+              title={isExpanded ? "Salir de vista ampliada (Esc)" : "Ver protocolo en vista ampliada completa (Esc para salir)"}
+              aria-label={isExpanded ? "Salir de vista ampliada" : "Ver protocolo en vista ampliada"}
+            >
+              {isExpanded ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                  <span>Cerrar (Esc)</span>
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="15 3 21 3 21 9" />
+                    <polyline points="9 21 3 21 3 15" />
+                    <line x1="21" y1="3" x2="14" y2="10" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </svg>
+                  <span>Vista ampliada</span>
+                </>
+              )}
+            </button>
+
+            {isExpanded && onExportWord && (
+              <button
+                type="button"
+                className="download-word-btn docx-expanded-dl-btn"
+                onClick={onExportWord}
+                disabled={exportingWord || exportingPdf}
+                title="Descargar documento Word (.docx)"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <path d="M12 18v-6" />
+                  <path d="m9 15 3 3 3-3" />
+                </svg>
+                <span>Word</span>
+              </button>
+            )}
+
+            {isExpanded && onExportPdf && (
+              <button
+                type="button"
+                className="download-pdf-btn docx-expanded-dl-btn"
+                onClick={onExportPdf}
+                disabled={exportingWord || exportingPdf}
+                title="Descargar documento PDF (.pdf)"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <path d="M10 12h4" />
+                  <path d="M12 18v-6" />
+                  <path d="m9 15 3 3 3-3" />
+                </svg>
+                <span>PDF</span>
+              </button>
+            )}
           </div>
         </div>
       )}

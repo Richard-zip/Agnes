@@ -24,6 +24,8 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
   const [evaluation, setEvaluation] = useState<QuizEvaluationResult | null>(null);
   const [validationWarning, setValidationWarning] = useState<string | null>(null);
+  const [isMaximized, setIsMaximized] = useState<boolean>(false);
+  const [isMinimized, setIsMinimized] = useState<boolean>(false);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   // Reiniciar estado si cambia el quiz
@@ -33,9 +35,34 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
       setEvaluation(null);
       setValidationWarning(null);
       setCurrentIndex(0);
+      setIsMinimized(false);
       bodyRef.current?.scrollTo({ top: 0, behavior: "auto" });
     }
   }, [quiz]);
+
+  // Si se cierra el modal desde afuera, resetear vistas de ventana
+  useEffect(() => {
+    if (!isOpen) {
+      setIsMinimized(false);
+      setIsMaximized(false);
+    }
+  }, [isOpen]);
+
+  // Soporte para tecla Escape: si está maximizado restaura, sino cierra
+  useEffect(() => {
+    if (!isOpen || isMinimized) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isMaximized) {
+          setIsMaximized(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, isMinimized, isMaximized, onClose]);
 
   const totalQuestions = quiz?.questions.length || 10;
   const answeredCount = useMemo(() => {
@@ -118,9 +145,73 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
   const isCorrect = evaluation !== null && currentResult?.isCorrect;
   const isIncorrect = evaluation !== null && currentResult && !currentResult.isCorrect;
 
+  if (isMinimized) {
+    return (
+      <aside
+        className="quiz-minimized-dock"
+        role="region"
+        aria-label="Cuestionario de comprensión minimizado"
+        onClick={() => setIsMinimized(false)}
+        title="Haz clic para restaurar y continuar con el cuestionario"
+      >
+        <div className="quiz-dock-content">
+          <span className="quiz-dock-pulse-dot" aria-hidden="true" />
+          <div className="quiz-dock-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <path d="M14 2v6h6" />
+              <path d="m9 15 2 2 4-4" />
+            </svg>
+          </div>
+          <div className="quiz-dock-info">
+            <span className="quiz-dock-title">Cuestionario en Pausa</span>
+            <span className="quiz-dock-progress">
+              {answeredCount} de {totalQuestions} respondidas
+              {evaluation ? (evaluation.passed ? " • Aprobado" : " • Revisión requerida") : ""}
+            </span>
+          </div>
+        </div>
+
+        <div className="quiz-dock-actions" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className="quiz-dock-btn quiz-dock-restore"
+            onClick={() => setIsMinimized(false)}
+            title="Restaurar ventana del cuestionario"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 3 21 3 21 9" />
+              <polyline points="9 21 3 21 3 15" />
+              <line x1="21" y1="3" x2="14" y2="10" />
+              <line x1="3" y1="21" x2="10" y2="14" />
+            </svg>
+            <span>Restaurar</span>
+          </button>
+          <button
+            type="button"
+            className="quiz-dock-btn quiz-dock-close"
+            onClick={onClose}
+            aria-label="Cerrar cuestionario"
+            title="Cerrar cuestionario"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </aside>
+    );
+  }
+
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="quiz-modal-title">
-      <div className="modal-dialog quiz-modal-dialog">
+    <div
+      className={`modal-backdrop quiz-backdrop ${isMaximized ? "is-maximized" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quiz-modal-title"
+    >
+      <div className={`modal-dialog quiz-modal-dialog ${isMaximized ? "is-maximized" : ""}`}>
         {/* Header */}
         <div className="modal-header">
           <div className="modal-header-icon-wrap quiz-icon-wrap">
@@ -138,17 +229,53 @@ export const ProtocolQuizModal: React.FC<ProtocolQuizModalProps> = ({
               Responde las 10 preguntas de selección múltiple sobre los temas estudiados para habilitar la descarga.
             </p>
           </div>
-          <button
-            type="button"
-            className="modal-close-btn"
-            onClick={onClose}
-            aria-label="Cerrar evaluación"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+
+          {/* Window Control Actions: Minimizar, Maximizar / Restaurar, Cerrar */}
+          <div className="modal-window-actions" aria-label="Controles de ventana">
+            <button
+              type="button"
+              className="modal-window-btn btn-window-minimize"
+              onClick={() => setIsMinimized(true)}
+              aria-label="Minimizar cuestionario"
+              title="Minimizar (te permite consultar el protocolo sin perder tus respuestas)"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              className="modal-window-btn btn-window-maximize"
+              onClick={() => setIsMaximized((prev) => !prev)}
+              aria-label={isMaximized ? "Restaurar tamaño normal" : "Maximizar ventana"}
+              title={isMaximized ? "Restaurar tamaño normal" : "Maximizar ventana a pantalla completa"}
+            >
+              {isMaximized ? (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="8" y="8" width="13" height="13" rx="2" />
+                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                </svg>
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                </svg>
+              )}
+            </button>
+
+            <button
+              type="button"
+              className="modal-window-btn btn-window-close"
+              onClick={onClose}
+              aria-label="Cerrar evaluación"
+              title="Cerrar cuestionario"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Body */}

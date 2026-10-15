@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Protocol } from "../../core/entities/protocol.entity";
 import { IProtocolStrategy } from "../../core/interfaces/protocol-strategy.interface";
 import { IDocumentExporter } from "../../core/interfaces/document-exporter.interface";
@@ -40,6 +40,8 @@ export const ProtocolPreview: React.FC<ProtocolPreviewProps> = ({
   onRequestConfig,
   children,
 }) => {
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
   return (
     <section className="panel panel-preview" aria-labelledby="preview-heading">
       <div className="panel-header preview-toolbar">
@@ -52,6 +54,22 @@ export const ProtocolPreview: React.FC<ProtocolPreviewProps> = ({
         </div>
 
         <div className="preview-toolbar-actions">
+          {protocol && protocol.sections.length > 0 && !loading && (
+            <button
+              type="button"
+              className="btn-preview-expand"
+              onClick={() => setIsExpanded(true)}
+              title="Abrir vista ampliada a pantalla completa (cómodo para lectura)"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+              <span>Vista ampliada</span>
+            </button>
+          )}
           {protocol && protocol.sections.length > 0 && !loading && onExportWord && (
             <button
               type="button"
@@ -203,7 +221,17 @@ export const ProtocolPreview: React.FC<ProtocolPreviewProps> = ({
         <BocchiLoading onStop={onStop} />
       ) : protocol && protocol.sections.length > 0 ? (
         documentExporter ? (
-          <DocxPreview protocol={protocol} documentExporter={documentExporter} />
+          <DocxPreview
+            protocol={protocol}
+            documentExporter={documentExporter}
+            materia={materia}
+            isExpanded={isExpanded}
+            onToggleExpanded={() => setIsExpanded((v) => !v)}
+            onExportWord={onExportWord}
+            onExportPdf={onExportPdf}
+            exportingWord={exportingWord}
+            exportingPdf={exportingPdf}
+          />
         ) : (
           <div className="document-sheet">
             <header className="document-institutional-header">

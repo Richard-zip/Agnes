@@ -776,8 +776,8 @@ Después de estudiar y discutir colaborativamente seguridad informatica, conclui
     "DocxPreview no muestra menciones directas a LibreOffice en su interfaz ni badges de usuario"
   );
   assert(
-    previewDocxCode.includes("Vista Previa Oficial"),
-    "DocxPreview muestra el badge limpio 'Vista Previa Oficial'"
+    !previewDocxCode.includes("Vista Previa Oficial"),
+    "DocxPreview ya no incluye el badge 'Vista Previa Oficial' según especificación de interfaz limpia"
   );
 
   // -------------------------------------------------------------
