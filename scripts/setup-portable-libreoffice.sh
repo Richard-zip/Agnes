@@ -25,6 +25,18 @@ done
 echo "=== Limpiando paquetes temporales... ==="
 rm -rf "$LO_DIR"/LibreOffice_*_Linux_x86-64_deb "$ARCHIVE"
 
+echo "=== Optimizando tamaño: eliminando módulos no usados (Calc, Impress, Draw, Base, diccionarios, fuentes no latinas)... ==="
+rm -rf "$LO_DIR/installed/usr"
+rm -rf "$LO_DIR/installed/opt/libreoffice"*/share/extensions
+rm -rf "$LO_DIR/installed/opt/libreoffice"*/share/xpdfimport
+rm -rf "$LO_DIR/installed/opt/libreoffice"*/share/firebird
+rm -rf "$LO_DIR/installed/opt/libreoffice"*/share/basic
+rm -rf "$LO_DIR/installed/opt/libreoffice"*/share/Scripts
+rm -rf "$LO_DIR/installed/opt/libreoffice"*/share/config/soffice.cfg/modules/{scalc,simpress,sdraw,BasicIDE}
+rm -rf "$LO_DIR/installed/opt/libreoffice"*/share/fonts/truetype/{Noto*Arabic*,Noto*Armenian*,Noto*Georgian*,Noto*Hebrew*,Noto*Lao*,Noto*Lisu*,FrankR*,Miriam*,Nachlieli*,Reem*,Scheherazade*,Rubik*,opens*,Lin*}
+rm -f "$LO_DIR/installed/opt/libreoffice"*/program/{libsclo.so,libscfiltlo.so,libsdlo.so,libslideshowlo.so,libdbalo.so,libdbulo.so,librptlo.so,libsmlo.so,liblocaledata_others.so}
+rm -f "$LO_DIR/installed/opt/libreoffice"*/program/{scalc,sdraw,simpress,sbase,smath}
+
 echo "=== Configurando script wrapper bin/libreoffice/soffice... ==="
 SOFFICE_SCRIPT=$(find "$LO_DIR/installed" -path "*/program/soffice" -type f | head -n 1)
 
