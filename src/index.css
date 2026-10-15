@@ -2,26 +2,28 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   
-  --bg-app: #080c15;
-  --bg-surface: #0e1626;
-  --bg-surface-elevated: #162035;
-  --bg-surface-paper: #121a2c;
-  --border-subtle: rgba(217, 119, 6, 0.12);
-  --border-medium: rgba(217, 119, 6, 0.22);
-  --border-focus: #d97706;
+  --bg-app: #0d0f16;
+  --bg-surface: #13151f;
+  --bg-surface-elevated: #1a1d29;
+  --bg-surface-paper: #11131b;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-focus: #8b5cf6;
 
-  --text-primary: #faf8f5;
-  --text-secondary: #cbd5e1;
-  --text-muted: #8091a7;
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
 
-  --accent-primary: #d97706;
-  --accent-hover: #b45309;
-  --accent-terracotta: #c2410c;
-  --accent-terracotta-hover: #9a3412;
-  --accent-gold: #f59e0b;
-  --accent-cobalt: #1d4ed8;
-  --accent-emerald: #059669;
-  --accent-rose: #e11d48;
+  --accent-primary: #8b5cf6;
+  --accent-hover: #7c3aed;
+  --accent-violet-glow: rgba(139, 92, 246, 0.35);
+  --accent-terracotta: #a855f7;
+  --accent-terracotta-hover: #9333ea;
+  --accent-gold: #c084fc;
+  --accent-cobalt: #6366f1;
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-rose: #f43f5e;
 
   font-family: var(--font-sans);
   line-height: 1.5;
@@ -63,27 +65,27 @@ html, body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(11, 19, 37, 0.6);
+  background: rgba(18, 20, 28, 0.7);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(148, 163, 184, 0.22);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.38);
 }
 
 /* Selection */
 ::selection {
-  background: rgba(217, 119, 6, 0.35);
+  background: rgba(139, 92, 246, 0.38);
   color: #ffffff;
 }
 
 /* Focus outline */
 :focus-visible {
-  outline: 2px solid var(--accent-gold);
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 

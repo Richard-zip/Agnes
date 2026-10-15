@@ -1,24 +1,32 @@
 ---
-name: Agnes — Editorial Académico Caribe
-description: Sistema de diseño editorial, institucional y académico inspirado en la Universidad de Cartagena
+name: Agnes — Obsidian Studio & Electric Violet
+description: Sistema de diseño para estación de trabajo académica inspirado en interfaces de estudio profesionales (MUSO Dashboard)
 colors:
-  bg-app: "#080c15"
-  bg-surface: "#0e1626"
-  bg-surface-elevated: "#162035"
-  bg-surface-paper: "#121a2c"
-  text-primary: "#faf8f5"
-  text-secondary: "#cbd5e1"
-  text-muted: "#8091a7"
-  primary: "#d97706"
-  primary-hover: "#b45309"
-  gold: "#f59e0b"
-  terracotta: "#c2410c"
-  cobalt: "#1d4ed8"
-  emerald: "#059669"
-  rose: "#e11d48"
-  border-subtle: "rgba(217, 119, 6, 0.12)"
-  border-medium: "rgba(217, 119, 6, 0.22)"
+  bg-app: "#0d0f16"
+  bg-surface: "#13151f"
+  bg-surface-elevated: "#1a1d29"
+  bg-surface-paper: "#11131b"
+  text-primary: "#ffffff"
+  text-secondary: "#94a3b8"
+  text-muted: "#64748b"
+  primary: "#8b5cf6"
+  primary-hover: "#7c3aed"
+  violet-glow: "rgba(139, 92, 246, 0.35)"
+  gold: "#c084fc"
+  terracotta: "#a855f7"
+  cyan: "#06b6d4"
+  cobalt: "#6366f1"
+  emerald: "#10b981"
+  emerald-dark: "#059669"
+  emerald-deep: "#047857"
+  emerald-light: "#34d399"
+  rose: "#f43f5e"
+  rose-dark: "#e11d48"
+  rose-light: "#fca5a5"
+  border-subtle: "rgba(255, 255, 255, 0.07)"
+  border-medium: "rgba(255, 255, 255, 0.12)"
 rounded:
+  xs: "4px"
   sm: "6px"
   md: "8px"
   lg: "12px"
@@ -42,26 +50,28 @@ components:
 
 ## Overview
 
-Agnes es una estación de trabajo académica diseñada para la investigación, redacción y certificación del aprendizaje en protocolos universitarios. El lenguaje visual **Editorial Académico Caribe** abandona deliberadamente los clichés genéricos de software (fondos azul cian/Tailwind frío) en favor de una atmósfera de biblioteca de investigación con calidez cartagenera:
-- **Tinta de medianoche abisal:** Profundidad serena y descansada para lectura prolongada.
-- **Oro Ámbar y Terracota:** Tonos cálidos nobles que evocan el prestigio institucional, las murallas históricas y el papel pergamino.
-- **Esmeralda de Aprobación:** Identificador de dominio conceptual en el cuestionario de aprendizaje.
+Agnes es una estación de trabajo de alta fidelidad para la investigación, redacción y certificación del aprendizaje en protocolos académicos. El lenguaje visual **Obsidian Studio & Electric Violet** está inspirado en consolas y dashboards de creación profesional (referencia MUSO Dashboard):
+- **Obsidiana y Carbón de Medianoche:** Fondos ultra oscuros con subtonos slate/índigo que ofrecen máxima profundidad, ergonomía visual y contraste para sesiones prolongadas.
+- **Violeta Eléctrico y Orquídea Neón:** Gradientes e iluminaciones violeta vibrante (`#7c3aed` a `#a855f7`) para botones de acción principal, insignias de estado activo y halos luminosos.
+- **Micro-etiquetado y Chips Studio:** Insignias de píldora compactas (`rounded-full`), tipografía técnica con tracking amplio en mayúsculas, y paneles con bordes sutiles de 1px.
+- **Hojas Oficiales de Papel Flotante:** Alto contraste entre el lienzo carbón de estudio y la hoja física blanca con sombras difusas realistas.
 
 ## Colors
 
 | Rol | Token | Hex / Valor | Uso |
 |---|---|---|---|
-| **Canvas** | `--bg-app` | `#080c15` | Fondo base de la aplicación |
-| **Superficie** | `--bg-surface` | `#0e1626` | Paneles principales y barras de navegación |
-| **Elevada** | `--bg-surface-elevated`| `#162035` | Modales, desplegables y tarjetas activas |
-| **Texto Primario** | `--text-primary` | `#faf8f5` | Texto principal marfil pergamino cálido |
-| **Texto Secundario**| `--text-secondary`| `#cbd5e1` | Subtítulos, descripciones y pistas |
-| **Texto Atenuado** | `--text-muted` | `#8091a7` | Etiquetas y contadores de baja jerarquía |
-| **Acento Primario** | `--accent-primary` | `#d97706` | Botón principal de redacción y acciones clave |
-| **Acento Dorado** | `--accent-gold` | `#f59e0b` | Insignias, estados activos del stepper, focos |
-| **Terracota** | `--accent-terracotta`| `#c2410c` | Botones de descarga y gradientes cálidos |
-| **Esmeralda** | `--accent-emerald` | `#059669` | Validación del cuestionario y respuestas correctas |
-| **Carmesí** | `--accent-rose` | `#e11d48` | Botón de detención (Stop) y respuestas incorrectas |
+| **Canvas** | `--bg-app` | `#0d0f16` | Fondo base de la aplicación estilo estudio |
+| **Superficie** | `--bg-surface` | `#13151f` | Paneles principales de trabajo y barras de navegación |
+| **Elevada** | `--bg-surface-elevated`| `#1a1d29` | Modales, tarjetas activas, popups y campos de entrada |
+| **Texto Primario** | `--text-primary` | `#ffffff` | Texto principal blanco puro de alta legibilidad |
+| **Texto Secundario**| `--text-secondary`| `#94a3b8` | Subtítulos, descripciones secundarias y etiquetas |
+| **Texto Atenuado** | `--text-muted` | `#64748b` | Contadores, microetiquetas técnicas y metadatos |
+| **Acento Primario** | `--accent-primary` | `#8b5cf6` | Botón principal de redacción y acciones clave |
+| **Violeta Eléctrico**| `--accent-hover` | `#7c3aed` | Estado activo e interactivo primario |
+| **Lavanda Brillante**| `--accent-gold` | `#c084fc` | Insignias, estados activos del stepper, focos |
+| **Cian Estudio** | `--accent-cyan` | `#06b6d4` | Insignias de previsualización oficial e indicadores |
+| **Esmeralda Éxito** | `--accent-emerald` | `#10b981` | Aprobación del cuestionario (≥80%) y respuestas correctas |
+| **Rosa Carmesí** | `--accent-rose` | `#f43f5e` | Botón de detención (Stop) y respuestas incorrectas |
 
 ## Typography
 
@@ -71,12 +81,12 @@ Agnes es una estación de trabajo académica diseñada para la investigación, r
   - Títulos principales: `1.18rem`, `font-weight: 700`, `letter-spacing: -0.025em`.
   - Títulos de sección: `1.05rem`, `font-weight: 700`.
   - Texto de lectura: `0.92rem`, `line-height: 1.68`, `max-width: 75ch`.
-  - Microcopia e insignias: `0.65rem – 0.78rem`, `font-weight: 600`.
+  - Microcopia de sección: `0.68rem`, `font-weight: 700`, `letter-spacing: 0.08em`, `text-transform: uppercase`.
 
 ## Layout
 
-- Disposición en 2 paneles de trabajo desacoplados en pantallas de escritorio (>1080px):
-  - **Panel Izquierdo:** Formulario de parámetros, selección de estrategia y configuración.
+- Disposición en 2 paneles de trabajo desacoplados en escritorio (>1080px):
+  - **Panel Izquierdo:** Formulario de parámetros, estrategia y configuración de IA.
   - **Panel Derecho:** Previsualización fidedigna de hojas físicas oficiales de Word/PDF.
 - Scroll independiente y confinado mediante `overscroll-behavior: contain`.
 - En pantallas táctiles o compactas (≤1080px), colapsa fluidamente a 1 columna.
@@ -84,33 +94,35 @@ Agnes es una estación de trabajo académica diseñada para la investigación, r
 ## Elevation & Depth
 
 - **Sombras:**
-  - Botones primarios: `0 8px 20px rgba(217, 119, 6, 0.28)`.
-  - Modales: `0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 35px rgba(217, 119, 6, 0.16)`.
-  - Hoja de papel: `0 18px 45px rgba(0, 0, 0, 0.55), 0 3px 10px rgba(0, 0, 0, 0.3)`.
-- **Bordes:** Finos de 1px con transparencias cálidas (`rgba(217, 119, 6, 0.12)` a `0.22)`).
+  - Botones primarios: `0 8px 24px rgba(124, 58, 237, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25)`.
+  - Modales: `0 25px 60px rgba(0, 0, 0, 0.85), 0 0 45px rgba(124, 58, 237, 0.18)`.
+  - Hoja de papel: `0 24px 60px rgba(0, 0, 0, 0.7), 0 4px 16px rgba(0, 0, 0, 0.4)`.
+- **Bordes:** Finos de 1px con transparencias sobrias (`rgba(255, 255, 255, 0.07)` a `rgba(255, 255, 255, 0.12)`).
 
 ## Shapes
 
 - Botones y controles de formulario: `8px` (`rounded.md`).
-- Tarjetas y contenedores: `12px` (`rounded.lg`).
+- Tarjetas y contenedores de panel: `16px` (`rounded.xl`).
 - Modales: `16px` (`rounded.xl`).
 - Chips de estado y badges: `9999px` (`rounded.full`).
 
 ## Components
 
-- **`.btn-primary`:** Fondo en gradiente ámbar (`#d97706` a `#b45309`), borde con brillo dorado fino y texto blanco nítido.
-- **`.segmented-control`:** Selector estilizado con borde ambarino sutil y fondo elevado en la opción activa.
-- **`.quiz-step-chip`:** Dimensiones accesibles `36×36px` con objetivo táctil de `44×44px`, identificadores de estado dinámico (respondida, aprobada, fallida).
-- **`.protocol-paper-sheet`:** Renderizado de hoja física con textura blanca nítida, contrastada contra el fondo marino nocturno.
+- **`.btn-primary`:** Gradiente violeta eléctrico (`linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #a855f7 100%)`) con halo sutil.
+- **`.brand-badge`:** Píldora de estudio neón (`linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)`) inspirada en el badge PRO de MUSO.
+- **`.segmented-control`:** Selector estilizado oscuro (`#10121a`) con opción activa resaltada en slate profundo y borde violeta sutil.
+- **`.quiz-step-chip`:** Dimensiones táctiles accesibles `36×36px` con objetivo de `44×44px`, acentos neón para estados activo, correcto y fallido.
+- **`.protocol-paper-sheet`:** Hoja física nítida blanca con relieve de sombra volumétrica.
 
 ## Do's and Don'ts
 
 ### Do's
-- Mantener los acentos dorados y terracota para guiar la atención sin saturar el lienzo.
-- Utilizar el blanco marfil (`#faf8f5`) para títulos y cuerpo de texto para máxima comodidad ocular.
-- Preservar el foco `:focus-visible` con `outline: 2px solid var(--accent-gold)`.
+- Emplear el violeta eléctrico (`#8b5cf6` / `#7c3aed`) como acento principal guiando acciones de alta relevancia.
+- Mantener fondos oscuros profundos (`#0d0f16` a `#1a1d29`) para recrear la atmósfera de estudio profesional.
+- Conservar los bordes translúcidos de 1px (`rgba(255, 255, 255, 0.07)`) que aportan sutileza arquitectónica.
+- Asegurar que la hoja física de Word/PDF contraste con un blanco puro sobre el fondo oscuro.
 
 ### Don'ts
 - No utilizar bordes rígidos artificiales tipo pestaña lateral (`side-tab`).
-- No emplear azul cian genérico (`#38bdf8`) para evitar el aspecto de plantilla genérica.
-- No animar propiedades geométricas de layout (`width` o `height`) en transiciones de interfaz.
+- No emplear azul cielo frío estándar de Tailwind (`#38bdf8`) como fondo de contenedor principal.
+- No sobrecargar la pantalla con animaciones pesadas; respetar `prefers-reduced-motion`.
