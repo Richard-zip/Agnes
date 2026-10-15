@@ -44,6 +44,9 @@
   "build": {
     "appId": "com.agnes.protoia",
     "productName": "Agnes",
+    "directories": {
+      "output": "release"
+    },
     "icon": "public/icon.png",
     "compression": "maximum",
     "files": [
