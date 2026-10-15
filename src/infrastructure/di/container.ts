@@ -1,5 +1,4 @@
-import { appConfig } from "../config/env.config";
-import { AISettingsService } from "../config/ai-settings.service";
+import { AISettingsService, DEFAULT_FREE_MODEL } from "../config/ai-settings.service";
 import { EventLoggerService } from "../logging/event-logger.service";
 import { GeminiAIService } from "../ai/gemini-ai.service";
 import { MockAIService } from "../ai/mock-ai.service";
@@ -56,8 +55,8 @@ export function createContainer(options: ContainerOptions = {}): AppContainer {
     aiService = new MockAIService();
   } else {
     const settings = AISettingsService.getSettings();
-    const apiKey = options.apiKey !== undefined ? options.apiKey : (settings.apiKey || appConfig.geminiApiKey);
-    const model = options.modelName !== undefined ? options.modelName : (settings.model || appConfig.geminiModel);
+    const apiKey = options.apiKey !== undefined ? options.apiKey : (settings.apiKey || "");
+    const model = options.modelName !== undefined ? options.modelName : (settings.model || DEFAULT_FREE_MODEL);
     aiService = new GeminiAIService(apiKey, model);
   }
 

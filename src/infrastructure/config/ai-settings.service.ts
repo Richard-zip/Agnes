@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { appConfig } from "./env.config";
 import { parseGeminiError } from "../ai/ai-error-handler";
 
 export const DEFAULT_FREE_MODEL = "gemini-3.8-flash";
@@ -40,7 +39,7 @@ export class AISettingsService {
       console.warn("No se pudo acceder a localStorage:", e);
     }
 
-    const apiKey = storedKey.trim() || appConfig.geminiApiKey || "";
+    const apiKey = storedKey.trim();
     // Se utiliza exclusivamente la API gratuita por defecto (gemini-3.8-flash)
     const model = DEFAULT_FREE_MODEL;
 
